@@ -1,0 +1,13 @@
+[build]
+  functions = "netlify/functions"
+  publish = "."
+
+[[redirects]]
+  from = "/api/log-event"
+  to = "/.netlify/functions/log-event"
+  status = 200
+
+[[redirects]]
+  from = "/api/get-events"
+  to = "/.netlify/functions/get-events"
+  status = 200
