@@ -338,6 +338,58 @@ body {
 }
 
 /* WEEKLY REPORT CARD */
+/* v8: steering companion card — one calm line, colour hints by intent */
+#steerCardSlot { margin: 0 0 4px; }
+.steer-card {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 14px 16px; margin: 8px 0;
+  animation: steerIn .5s ease both;
+}
+@keyframes steerIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.steer-card.push    { border-color: rgba(45,212,191,0.35); }
+.steer-card.power   { border-color: rgba(251,191,36,0.35); }
+.steer-card.pull    { border-color: rgba(167,139,250,0.35); }
+.steer-card.safety  { border-color: rgba(248,113,113,0.45); background: rgba(248,113,113,0.06); }
+.steer-icon { font-size: 22px; line-height: 1.2; flex: 0 0 auto; }
+.steer-text { flex: 1 1 auto; }
+.steer-title { color: var(--text); font-size: 15px; font-weight: 600; }
+.steer-sub { color: var(--text-faint); font-size: 13px; margin-top: 3px; line-height: 1.45; }
+.steer-actions { margin-top: 10px; display: flex; gap: 8px; }
+.steer-btn {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+  color: var(--text); border-radius: 10px; padding: 7px 12px; font-size: 13px;
+  font-family: inherit; cursor: pointer;
+}
+.steer-btn.primary { background: var(--teal-dim); border-color: var(--teal-glow); color: var(--teal); }
+
+/* v8: horizontal climbing streak visual */
+.climb-strip {
+  display: flex; align-items: flex-end; gap: 5px;
+  padding: 8px 2px 4px; overflow-x: auto;
+}
+.climb-step {
+  position: relative; flex: 1 1 0; min-width: 20px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 5px 5px 0 0;
+  display: flex; align-items: flex-start; justify-content: center;
+  transition: background .3s ease;
+}
+.climb-step.on {
+  background: linear-gradient(to top, var(--teal-soft), var(--teal));
+}
+.climb-figure {
+  position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+  font-size: 17px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+}
+.climb-ms {
+  position: absolute; bottom: -16px; left: 50%; transform: translateX(-50%);
+  font-size: 10px; color: var(--text-very-faint); font-weight: 600;
+}
+.climb-caption {
+  margin-top: 20px; font-size: 13px; color: var(--gold); font-weight: 600; text-align: center;
+}
+
 /* Energy streak — minimal one-line discreet tracker */
 .energy-streak {
   margin: 14px 14px 0;
@@ -2429,6 +2481,55 @@ body {
    for confirmation. NOT the calm teal/gold of App A.
    ============================================================ */
 
+/* v8: hide legacy clinic-management organs without removing their DOM
+   (so their JS bindings never throw on a missing element). */
+.b-legacy-hidden { display: none !important; }
+
+/* v8: patient-planning + goal-countdown cards reuse pending-card styling */
+.b-goal-input-row {
+  display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap;
+}
+.b-goal-input, .b-goal-date {
+  flex: 1 1 auto; min-width: 0;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px; padding: 12px 14px;
+  color: var(--text); font-size: 15px; font-family: inherit;
+}
+.b-goal-date { flex: 0 0 auto; }
+.b-goal-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; margin-top: 8px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 12px;
+}
+.b-goal-item-main { flex: 1 1 auto; min-width: 0; }
+.b-goal-item-text { color: var(--text); font-size: 15px; font-weight: 500; }
+.b-goal-item-days { font-size: 13px; margin-top: 3px; font-weight: 600; }
+.b-goal-item-days.near { color: var(--rose); }
+.b-goal-item-days.mid  { color: var(--gold); }
+.b-goal-item-days.far  { color: var(--text-faint); }
+.b-goal-item-del, .b-patient-item-del {
+  flex: 0 0 auto; background: none; border: none;
+  color: var(--text-very-faint); font-size: 18px; cursor: pointer; padding: 4px 6px;
+}
+.b-patient-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; margin-top: 8px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 12px;
+}
+.b-patient-item-text { flex: 1 1 auto; min-width: 0; color: var(--text); font-size: 15px; }
+.b-patient-item.done .b-patient-item-text { text-decoration: line-through; opacity: 0.5; }
+.b-patient-check {
+  flex: 0 0 auto; width: 22px; height: 22px; border-radius: 6px;
+  border: 1.5px solid rgba(255,255,255,0.25); background: none; cursor: pointer;
+  color: var(--teal); font-size: 14px; display: flex; align-items: center; justify-content: center;
+}
+
+
 /* App switcher tabs at top */
 .app-switcher {
   display: flex;
@@ -4300,9 +4401,9 @@ body.app-c-active .app-b { display: none !important; }
   border: 2px solid #0a0f1e;
 }
 </style>
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiU2F1bXlhIiwic2hvcnRfbmFtZSI6IlNhdW15YSIsImRlc2NyaXB0aW9uIjoiU2F1bXlhIFx1MjAxNCB5b3VyIGdlbnRsZSBkYWlseSBjb21wYW5pb24gZm9yIHJvdXRpbmUsIGpvdXJuYWwsIGFuZCByZWZsZWN0aW9uIiwic3RhcnRfdXJsIjoiLi8/c291cmNlPXB3YSIsInNjb3BlIjoiLi8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsIm9yaWVudGF0aW9uIjoicG9ydHJhaXQiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzBhMGYxZSIsInRoZW1lX2NvbG9yIjoiIzBhMGYxZSIsImljb25zIjpbeyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSFpwWlhkQ2IzZzlJakFnTUNBMU1USWdOVEV5SWo0OFpHVm1jejQ4YkdsdVpXRnlSM0poWkdsbGJuUWdhV1E5SW1KbklpQjRNVDBpTUNJZ2VURTlJakFpSUhneVBTSXdJaUI1TWowaU1TSStQSE4wYjNBZ2IyWm1jMlYwUFNJd0lpQnpkRzl3TFdOdmJHOXlQU0lqTUdReFlqSmhJaTgrUEhOMGIzQWdiMlptYzJWMFBTSXhJaUJ6ZEc5d0xXTnZiRzl5UFNJak1HRXdaakZsSWk4K1BDOXNhVzVsWVhKSGNtRmthV1Z1ZEQ0OGJHbHVaV0Z5UjNKaFpHbGxiblFnYVdROUluUWlJSGd4UFNJd0lpQjVNVDBpTUNJZ2VESTlJakFpSUhreVBTSXhJajQ4YzNSdmNDQnZabVp6WlhROUlqQWlJSE4wYjNBdFkyOXNiM0k5SWlObVltSm1NalFpTHo0OGMzUnZjQ0J2Wm1aelpYUTlJakVpSUhOMGIzQXRZMjlzYjNJOUlpTm1OVGxsTUdJaUx6NDhMMnhwYm1WaGNrZHlZV1JwWlc1MFBqeHlZV1JwWVd4SGNtRmthV1Z1ZENCcFpEMGlhR0ZzYnlJZ1kzZzlJalV3SlNJZ1kzazlJalV3SlNJZ2NqMGlOVEFsSWo0OGMzUnZjQ0J2Wm1aelpYUTlJakFpSUhOMGIzQXRZMjlzYjNJOUlpTm1ZbUptTWpRaUlITjBiM0F0YjNCaFkybDBlVDBpTUM0MElpOCtQSE4wYjNBZ2IyWm1jMlYwUFNJeElpQnpkRzl3TFdOdmJHOXlQU0lqWm1KaVpqSTBJaUJ6ZEc5d0xXOXdZV05wZEhrOUlqQWlMejQ4TDNKaFpHbGhiRWR5WVdScFpXNTBQand2WkdWbWN6NDhjbVZqZENCM2FXUjBhRDBpTlRFeUlpQm9aV2xuYUhROUlqVXhNaUlnWm1sc2JEMGlkWEpzS0NOaVp5a2lMejQ4WTJseVkyeGxJR040UFNJeU5UWWlJR041UFNJeU5UWWlJSEk5SWpJeU1DSWdabWxzYkQwaWRYSnNLQ05vWVd4dktTSXZQanhqYVhKamJHVWdZM2c5SWpJMU5pSWdZM2s5SWpJMU5pSWdjajBpTWpBd0lpQm1hV3hzUFNKdWIyNWxJaUJ6ZEhKdmEyVTlJaU5tWW1KbU1qUWlJSE4wY205clpTMTNhV1IwYUQwaU5TSWdiM0JoWTJsMGVUMGlNQzQwSWk4K1BIUmxlSFFnZUQwaU1qVTJJaUI1UFNJek5UQWlJR1p2Ym5RdFptRnRhV3g1UFNKSFpXOXlaMmxoTEhObGNtbG1JaUJtYjI1MExYTnBlbVU5SWpJNU1DSWdabTl1ZEMxM1pXbG5hSFE5SW1KdmJHUWlJR1pwYkd3OUluVnliQ2dqZENraUlIUmxlSFF0WVc1amFHOXlQU0p0YVdSa2JHVWlQdUNrdU9DbGpEd3ZkR1Y0ZEQ0OEwzTjJaejQ9Iiwic2l6ZXMiOiJhbnkiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCIsInB1cnBvc2UiOiJhbnkgbWFza2FibGUifSx7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjRiV3h1Y3owaWFIUjBjRG92TDNkM2R5NTNNeTV2Y21jdk1qQXdNQzl6ZG1jaUlIWnBaWGRDYjNnOUlqQWdNQ0ExTVRJZ05URXlJajQ4WkdWbWN6NDhiR2x1WldGeVIzSmhaR2xsYm5RZ2FXUTlJbUpuSWlCNE1UMGlNQ0lnZVRFOUlqQWlJSGd5UFNJd0lpQjVNajBpTVNJK1BITjBiM0FnYjJabWMyVjBQU0l3SWlCemRHOXdMV052Ykc5eVBTSWpNR1F4WWpKaElpOCtQSE4wYjNBZ2IyWm1jMlYwUFNJeElpQnpkRzl3TFdOdmJHOXlQU0lqTUdFd1pqRmxJaTgrUEM5c2FXNWxZWEpIY21Ga2FXVnVkRDQ4YkdsdVpXRnlSM0poWkdsbGJuUWdhV1E5SW5RaUlIZ3hQU0l3SWlCNU1UMGlNQ0lnZURJOUlqQWlJSGt5UFNJeElqNDhjM1J2Y0NCdlptWnpaWFE5SWpBaUlITjBiM0F0WTI5c2IzSTlJaU5tWW1KbU1qUWlMejQ4YzNSdmNDQnZabVp6WlhROUlqRWlJSE4wYjNBdFkyOXNiM0k5SWlObU5UbGxNR0lpTHo0OEwyeHBibVZoY2tkeVlXUnBaVzUwUGp4eVlXUnBZV3hIY21Ga2FXVnVkQ0JwWkQwaWFHRnNieUlnWTNnOUlqVXdKU0lnWTNrOUlqVXdKU0lnY2owaU5UQWxJajQ4YzNSdmNDQnZabVp6WlhROUlqQWlJSE4wYjNBdFkyOXNiM0k5SWlObVltSm1NalFpSUhOMGIzQXRiM0JoWTJsMGVUMGlNQzQwSWk4K1BITjBiM0FnYjJabWMyVjBQU0l4SWlCemRHOXdMV052Ykc5eVBTSWpabUppWmpJMElpQnpkRzl3TFc5d1lXTnBkSGs5SWpBaUx6NDhMM0poWkdsaGJFZHlZV1JwWlc1MFBqd3ZaR1ZtY3o0OGNtVmpkQ0IzYVdSMGFEMGlOVEV5SWlCb1pXbG5hSFE5SWpVeE1pSWdabWxzYkQwaWRYSnNLQ05pWnlraUx6NDhZMmx5WTJ4bElHTjRQU0l5TlRZaUlHTjVQU0l5TlRZaUlISTlJakl5TUNJZ1ptbHNiRDBpZFhKc0tDTm9ZV3h2S1NJdlBqeGphWEpqYkdVZ1kzZzlJakkxTmlJZ1kzazlJakkxTmlJZ2NqMGlNakF3SWlCbWFXeHNQU0p1YjI1bElpQnpkSEp2YTJVOUlpTm1ZbUptTWpRaUlITjBjbTlyWlMxM2FXUjBhRDBpTlNJZ2IzQmhZMmwwZVQwaU1DNDBJaTgrUEhSbGVIUWdlRDBpTWpVMklpQjVQU0l6TlRBaUlHWnZiblF0Wm1GdGFXeDVQU0pIWlc5eVoybGhMSE5sY21sbUlpQm1iMjUwTFhOcGVtVTlJakk1TUNJZ1ptOXVkQzEzWldsbmFIUTlJbUp2YkdRaUlHWnBiR3c5SW5WeWJDZ2pkQ2tpSUhSbGVIUXRZVzVqYUc5eVBTSnRhV1JrYkdVaVB1Q2t1T0NsakR3dmRHVjRkRDQ4TDNOMlp6ND0iLCJzaXplcyI6IjE5MngxOTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9LHsic3JjIjoiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhacFpYZENiM2c5SWpBZ01DQTFNVElnTlRFeUlqNDhaR1ZtY3o0OGJHbHVaV0Z5UjNKaFpHbGxiblFnYVdROUltSm5JaUI0TVQwaU1DSWdlVEU5SWpBaUlIZ3lQU0l3SWlCNU1qMGlNU0krUEhOMGIzQWdiMlptYzJWMFBTSXdJaUJ6ZEc5d0xXTnZiRzl5UFNJak1HUXhZakpoSWk4K1BITjBiM0FnYjJabWMyVjBQU0l4SWlCemRHOXdMV052Ykc5eVBTSWpNR0V3WmpGbElpOCtQQzlzYVc1bFlYSkhjbUZrYVdWdWRENDhiR2x1WldGeVIzSmhaR2xsYm5RZ2FXUTlJblFpSUhneFBTSXdJaUI1TVQwaU1DSWdlREk5SWpBaUlIa3lQU0l4SWo0OGMzUnZjQ0J2Wm1aelpYUTlJakFpSUhOMGIzQXRZMjlzYjNJOUlpTm1ZbUptTWpRaUx6NDhjM1J2Y0NCdlptWnpaWFE5SWpFaUlITjBiM0F0WTI5c2IzSTlJaU5tTlRsbE1HSWlMejQ4TDJ4cGJtVmhja2R5WVdScFpXNTBQanh5WVdScFlXeEhjbUZrYVdWdWRDQnBaRDBpYUdGc2J5SWdZM2c5SWpVd0pTSWdZM2s5SWpVd0pTSWdjajBpTlRBbElqNDhjM1J2Y0NCdlptWnpaWFE5SWpBaUlITjBiM0F0WTI5c2IzSTlJaU5tWW1KbU1qUWlJSE4wYjNBdGIzQmhZMmwwZVQwaU1DNDBJaTgrUEhOMGIzQWdiMlptYzJWMFBTSXhJaUJ6ZEc5d0xXTnZiRzl5UFNJalptSmlaakkwSWlCemRHOXdMVzl3WVdOcGRIazlJakFpTHo0OEwzSmhaR2xoYkVkeVlXUnBaVzUwUGp3dlpHVm1jejQ4Y21WamRDQjNhV1IwYUQwaU5URXlJaUJvWldsbmFIUTlJalV4TWlJZ1ptbHNiRDBpZFhKc0tDTmlaeWtpTHo0OFkybHlZMnhsSUdONFBTSXlOVFlpSUdONVBTSXlOVFlpSUhJOUlqSXlNQ0lnWm1sc2JEMGlkWEpzS0NOb1lXeHZLU0l2UGp4amFYSmpiR1VnWTNnOUlqSTFOaUlnWTNrOUlqSTFOaUlnY2owaU1qQXdJaUJtYVd4c1BTSnViMjVsSWlCemRISnZhMlU5SWlObVltSm1NalFpSUhOMGNtOXJaUzEzYVdSMGFEMGlOU0lnYjNCaFkybDBlVDBpTUM0MElpOCtQSFJsZUhRZ2VEMGlNalUySWlCNVBTSXpOVEFpSUdadmJuUXRabUZ0YVd4NVBTSkhaVzl5WjJsaExITmxjbWxtSWlCbWIyNTBMWE5wZW1VOUlqSTVNQ0lnWm05dWRDMTNaV2xuYUhROUltSnZiR1FpSUdacGJHdzlJblZ5YkNnamRDa2lJSFJsZUhRdFlXNWphRzl5UFNKdGFXUmtiR1VpUHVDa3VPQ2xqRHd2ZEdWNGRENDhMM04yWno0PSIsInNpemVzIjoiNTEyeDUxMiIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn1dfQ==">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMGQxYjJhIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMGEwZjFlIi8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9InQiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmYmJmMjQiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNmNTllMGIiLz48L2xpbmVhckdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0iaGFsbyIgY3g9IjUwJSIgY3k9IjUwJSIgcj0iNTAlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmYmJmMjQiIHN0b3Atb3BhY2l0eT0iMC40Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZmJiZjI0IiBzdG9wLW9wYWNpdHk9IjAiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0idXJsKCNiZykiLz48Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjIyMCIgZmlsbD0idXJsKCNoYWxvKSIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMjAwIiBmaWxsPSJub25lIiBzdHJva2U9IiNmYmJmMjQiIHN0cm9rZS13aWR0aD0iNSIgb3BhY2l0eT0iMC40Ii8+PHRleHQgeD0iMjU2IiB5PSIzNTAiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLHNlcmlmIiBmb250LXNpemU9IjI5MCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9InVybCgjdCkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPuCkuOCljDwvdGV4dD48L3N2Zz4=">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMGQxYjJhIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMGEwZjFlIi8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9InQiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmYmJmMjQiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNmNTllMGIiLz48L2xpbmVhckdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0iaGFsbyIgY3g9IjUwJSIgY3k9IjUwJSIgcj0iNTAlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmYmJmMjQiIHN0b3Atb3BhY2l0eT0iMC40Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZmJiZjI0IiBzdG9wLW9wYWNpdHk9IjAiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0idXJsKCNiZykiLz48Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjIyMCIgZmlsbD0idXJsKCNoYWxvKSIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMjAwIiBmaWxsPSJub25lIiBzdHJva2U9IiNmYmJmMjQiIHN0cm9rZS13aWR0aD0iNSIgb3BhY2l0eT0iMC40Ii8+PHRleHQgeD0iMjU2IiB5PSIzNTAiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLHNlcmlmIiBmb250LXNpemU9IjI5MCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9InVybCgjdCkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPuCkuOCljDwvdGV4dD48L3N2Zz4=">
 <meta name="application-name" content="Saumya">
 <meta name="apple-mobile-web-app-title" content="Saumya">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -4446,8 +4547,8 @@ body.app-c-active .app-b { display: none !important; }
 
     </section>
 
-    <!-- Clinic Entry Ritual gate — shows when no entry log for today, or geofence just fired -->
-    <section class="bcard b-entry-gate" id="bEntryGate" style="display:none;">
+    <!-- Clinic Entry Ritual gate — hidden in v8 (kept for JS safety) -->
+    <section class="bcard b-entry-gate b-legacy-hidden" id="bEntryGate" style="display:none;">
       <div class="b-entry-gate-stamp">🌅 Today's clinic entry ritual</div>
       <div class="b-entry-gate-sub">Set the day's intention before opening the dashboard.</div>
       <button class="b-btn-primary" id="bOpenEntryBtn" style="width:100%;margin-top:14px;">Begin entry ritual →</button>
@@ -4472,14 +4573,49 @@ body.app-c-active .app-b { display: none !important; }
       <div class="b-pending-list" id="bPendingList"></div>
     </section>
 
-    <!-- Hero / status — Now / Next / Danger -->
+    <!-- ============================================================
+         v8 CLINIC — decluttered. Old clinic-management organs
+         (Control Room, Danger, Pause, Park decision, High-value case,
+         More-tools, Mood patterns, Exit ritual, Open fires) are kept in
+         the codebase but hidden via CSS (.b-legacy-hidden) so their JS
+         never errors. Only Attendance + Pending stay, plus the two new
+         v8 sections below: Patient planning list & Goal countdowns.
+         ============================================================ -->
+
+    <!-- v8: Patient planning — specific patients whose work/planning is owed -->
+    <section class="bcard b-patients-card" id="bPatientsCard">
+      <div class="b-pending-header">
+        <div class="b-pending-title">🦷 Patients to plan</div>
+        <div class="b-pending-sub">Patients whose planning or work you owe.</div>
+      </div>
+      <div class="b-pending-input-row">
+        <input type="text" class="b-pending-input" id="bPatientInput" placeholder="Patient name + what's pending">
+        <button class="b-pending-add" id="bPatientAdd">＋</button>
+      </div>
+      <div class="b-pending-list" id="bPatientList"></div>
+    </section>
+
+    <!-- v8: Professional goals with reverse countdown (days ticking down) -->
+    <section class="bcard b-goals-card" id="bGoalsCard">
+      <div class="b-pending-header">
+        <div class="b-pending-title">🎯 Goals · countdown</div>
+        <div class="b-pending-sub">A target + its date. Time ticks backward.</div>
+      </div>
+      <div class="b-goal-input-row">
+        <input type="text" class="b-goal-input" id="bGoalText" placeholder="Goal (e.g. New chair installed)">
+        <input type="date" class="b-goal-date" id="bGoalDate">
+        <button class="b-pending-add" id="bGoalAdd">＋</button>
+      </div>
+      <div class="b-pending-list" id="bGoalList"></div>
+    </section>
+
+    <!-- Legacy clinic organs — hidden in v8, JS still binds to them safely -->
+    <div class="b-legacy-hidden">
     <section class="bcard bcard-hero">
       <div class="b-hero-stamp" id="bHeroStamp">🏥 Clinic Control Room</div>
       <div class="b-hero-mood-row" id="bHeroMoodRow"></div>
       <div class="b-hero-priority" id="bHeroPriority"></div>
     </section>
-
-    <!-- Danger — what could derail today -->
     <section class="bcard b-triad">
       <div class="b-triad-row b-danger" id="bTriadDanger">
         <div class="b-triad-label">DANGER</div>
@@ -4487,8 +4623,6 @@ body.app-c-active .app-b { display: none !important; }
         <div class="b-triad-edit">✎</div>
       </div>
     </section>
-
-    <!-- Pause / Mood Protection — the most important button -->
     <button class="bcard b-pause-btn" id="bPauseBtn">
       <div class="b-pause-icon">🛡️</div>
       <div class="b-pause-main">
@@ -4496,8 +4630,6 @@ body.app-c-active .app-b { display: none !important; }
         <div class="b-pause-sub">Tap when staff/patient/family triggers you</div>
       </div>
     </button>
-
-    <!-- Quick actions — 3 most-used (Park decision, Cases, More) -->
     <section class="b-quick-row">
       <button class="b-quick-btn" id="bQuickParkBtn">
         <span class="b-quick-icon">🅿️</span>
@@ -4510,15 +4642,10 @@ body.app-c-active .app-b { display: none !important; }
         <span class="b-quick-sub" id="bQuickCasesSub">Track one</span>
       </button>
     </section>
-
-    <!-- Top high-value cases preview (max 3, only if any exist) -->
     <section class="bcard b-cases-preview" id="bCasesPreview" style="display:none;">
       <div class="b-recent-title">💎 Active cases</div>
       <div id="bCasesPreviewList"></div>
     </section>
-
-    <!-- Pending things — voice/text quick capture, always visible -->
-    <!-- More tools — collapsible, contains all other organs -->
     <section class="bcard b-more-card">
       <button class="b-more-toggle" id="bMoreToggle">
         <span class="b-more-icon">⋯</span>
@@ -4584,8 +4711,6 @@ body.app-c-active .app-b { display: none !important; }
         </button>
       </div>
     </section>
-
-    <!-- Patterns (mood-clinic loop tracker) -->
     <section class="bcard">
       <button class="b-patterns-btn" id="bPatternsBtn">
         <span class="b-patterns-icon">📊</span>
@@ -4595,8 +4720,6 @@ body.app-c-active .app-b { display: none !important; }
         </span>
       </button>
     </section>
-
-    <!-- Today's leakage tracker (visible only after 5 PM) -->
     <section class="bcard b-leakage" id="bLeakageCard" style="display:none;">
       <div class="b-leakage-header">
         <div class="b-leakage-title">🚪 Before you leave</div>
@@ -4604,12 +4727,11 @@ body.app-c-active .app-b { display: none !important; }
       </div>
       <button class="b-leakage-btn" id="bLeakageBtn">Open exit ritual →</button>
     </section>
-
-    <!-- Recent fires (compact) -->
     <section class="bcard b-recent" id="bRecentFires">
       <div class="b-recent-title">🔥 Open fires</div>
       <div class="b-recent-list" id="bRecentFiresList"></div>
     </section>
+    </div>
 
   </div>
 
@@ -5052,6 +5174,10 @@ body.app-c-active .app-b { display: none !important; }
 
   <div id="nowCardSlot"></div>
 
+  <!-- v8: steering companion — one gentle line driven by movement events
+       (morning push / power hours / overwork pull / safety check). -->
+  <div id="steerCardSlot"></div>
+
   <section class="progress">
     <div class="donut">
       <svg width="145" height="145" viewBox="0 0 145 145">
@@ -5096,7 +5222,10 @@ body.app-c-active .app-b { display: none !important; }
   </div>
 
   <div class="toolbar">
-    <div class="pranshu-segment" id="pranshuSegment" role="group" aria-label="Pranshu schedule">
+    <!-- Pranshu schedule toggle hidden in v8 — Pranav has no morning classes now.
+         The mode logic (getPranshuMode + SCHEDULE_PHASES + SCHOOL_START) stays live
+         and dormant so it auto-reactivates when school reopens (2026-06-16). -->
+    <div class="pranshu-segment b-legacy-hidden" id="pranshuSegment" role="group" aria-label="Pranshu schedule" style="display:none;">
       <button class="pseg-pill" data-mode="school" id="psegSchool"><span class="pseg-icon">🏫</span><span class="pseg-label">School</span></button>
       <button class="pseg-pill" data-mode="kids" id="psegKids"><span class="pseg-icon">🎒</span><span class="pseg-label">Kids' Care</span></button>
       <button class="pseg-pill" data-mode="off" id="psegOff"><span class="pseg-icon">🏠</span><span class="pseg-label">Off</span></button>
@@ -5809,20 +5938,14 @@ const LAUNCH_DAY = [
       { id: "ld_water", label: "Warm water if possible" }
     ]
   },
-  { id: "ld2", time: "5:00 - 5:30", title: "Pre-walk prep", tasks: [
-    { id: "ld_efferv", label: "Effervescent tab" },
+  { id: "ld2", time: "5:00 - 5:30", title: "Morning setup", tasks: [
     { id: "ld_dress", label: "Dress change" },
-    { id: "ld_pack", label: "Pack: Handkerchief + Socks + Stick + Headphones" },
-    { id: "ld_wifi", label: "Phone WiFi OFF" },
     { id: "ld_liver", label: "Liver meds", tagCheck: true }
   ]},
-  { id: "ld3", time: "5:30 - 7:30", title: "Walk", walkSection: true,
-    note: "5:30 leave → 6:15 reach Mahadev Ghat → sit 15 min → 6:30 start back → 7:30 home",
+  { id: "ld3", time: "5:30 - 6:30", title: "Movement (optional)", walkSection: true,
+    note: "Optional — short walk or stretch if the morning allows.",
     tasks: [
-      { id: "ld_walk_out", label: "Leave home at 5:30" },
-      { id: "ld_walk_reach", label: "Reach destination" },
-      { id: "ld_walk_sit", label: "Sit 15 min (calm down, breathe)" },
-      { id: "ld_walk_back", label: "Reach home by 7:30" }
+      { id: "ld_walk_out", label: "Moved a little 🚶 (optional)" }
     ]
   },
   { id: "ld_journal_morning", time: "7:30 - 8:00", title: "Morning Reflection", journal: true, journalKey: "morning",
@@ -5908,30 +6031,24 @@ const REGULAR = [
       { id: "med_thyrox", label: "Thyrox 75 mcg (empty stomach)" }
     ]
   },
-  { id: "r2", time: "5:00 - 5:15", title: "Pre-walk prep", tasks: [
+  { id: "r2", time: "5:00 - 5:30", title: "Morning setup", tasks: [
     { id: "dress", label: "Dress change" },
-    { id: "pack_stick", label: "🦯 Stick (for stray dogs on route)" },
-    { id: "pack", label: "Pack: Handkerchief + Headphones" },
-    { id: "wifi_off", label: "Phone WiFi OFF" },
-    { id: "eggs_boiler", label: "Put 3 eggs in boiler" },
-    { id: "water_fridge", label: "1 glass water in fridge" },
-    { id: "spf_prewalk", label: "☀️ Seekaus SPF + cap (pre-walk)" }
+    { id: "warm_water", label: "Warm water" },
+    { id: "spf_prewalk", label: "☀️ SPF + cap if heading out" }
   ]},
-  { id: "r3", time: "5:15 - 7:00", title: "Walk", walkSection: true,
-    note: "5:15 leave → 45 min to Mahadev Ghat → 15 min sit at ghat → 45 min back. Home by 7:00 before heat rises.",
+  { id: "r3", time: "5:30 - 6:30", title: "Movement (optional)", walkSection: true,
+    note: "Optional now — a short walk or stretch if the morning allows. No pressure on busy days.",
     tasks: [
-      { id: "walk_done", label: "Walk completed 🚶 (Ghat + back)" }
+      { id: "walk_done", label: "Moved a little 🚶 (optional)" }
     ]
   },
-  { id: "r4", time: "7:00 - 7:30", title: "Post-walk snack",
+  { id: "r4", time: "7:00 - 7:30", title: "Morning fuel",
     skipOnSchoolDay: true,
-    note: "Light recovery — not the main breakfast. Effervescent here (safe, Thyrox fully absorbed). Real breakfast comes at 11:00 before clinic.",
+    note: "Light start. Real breakfast comes before clinic.",
     tasks: [
       { id: "hydrate", label: "Water + sit + breathe" },
-      { id: "effervescent", label: "Effervescent tab" },
-      { id: "shake", label: "Protein shake" },
-      { id: "two_eggs", label: "2 full eggs" },
-      { id: "dryfruits_soya", label: "Dry fruits + Soya chunks" }
+      { id: "two_eggs", label: "Eggs / protein" },
+      { id: "dryfruits_soya", label: "Dry fruits + soya" }
     ]
   },
   { id: "r_breakfast_meds", time: "After breakfast", title: "💊 After-breakfast meds",
@@ -6173,6 +6290,15 @@ const REGULAR = [
 const STORAGE_KEY = "pranavDailyTrackerV5";
 const today = () => {
   const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+};
+// Local (device-timezone) date key for any Date — use this everywhere instead of
+// toISOString().split('T')[0], which returns the UTC date and is wrong before
+// 5:30am IST (it would file early-morning data on the previous calendar day).
+const localDateKey = (d) => {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const dd = String(d.getDate()).padStart(2, '0');
@@ -6547,7 +6673,7 @@ function calcStreak() {
   let streak = 0;
   const d = new Date();
   for (let i = 0; i < 365; i++) {
-    const k = d.toISOString().split("T")[0];
+    const k = localDateKey(d);
     if (state.history[k]) {
       streak++;
       d.setDate(d.getDate() - 1);
@@ -6568,7 +6694,7 @@ function getKmThisWeek() {
   for (let i = 0; i < 7; i++) {
     const d = new Date(now);
     d.setDate(d.getDate() - i);
-    const k = d.toISOString().split("T")[0];
+    const k = localDateKey(d);
     if (state.kmLog[k]) total += state.kmLog[k];
   }
   return total;
@@ -6671,7 +6797,7 @@ function getMedAdherence(days) {
   for (let i = 1; i <= days; i++) {
     const d = new Date(todayDate);
     d.setDate(d.getDate() - i);
-    const dateKey = d.toISOString().split("T")[0];
+    const dateKey = localDateKey(d);
     // Skip days before May 7 (start date)
     if (dateKey < "2026-05-07") continue;
     for (const medId of ALL_MED_IDS) {
@@ -6712,7 +6838,7 @@ function generateWeeklyReport() {
   for (let i = 0; i < 7; i++) {
     const d = new Date(todayDate);
     d.setDate(d.getDate() - i);
-    const k = d.toISOString().split("T")[0];
+    const k = localDateKey(d);
     if (state.kmLog[k]) { totalKm += state.kmLog[k]; walkDays++; }
     if (state.history[k]) perfectDays++;
     if (state.journal[k]) journalsWritten += Object.keys(state.journal[k]).length;
@@ -6751,7 +6877,7 @@ function detectPatterns() {
   for (let i = 1; i <= 14; i++) {
     const d = new Date(todayDate);
     d.setDate(d.getDate() - i);
-    const k = d.toISOString().split("T")[0];
+    const k = localDateKey(d);
     last14.push({
       key: k,
       day: d.getDay(),
@@ -6923,7 +7049,7 @@ function getFestivalToday() {
 function getFestivalTomorrow() {
   const t = new Date();
   t.setDate(t.getDate() + 1);
-  const k = t.toISOString().split('T')[0];
+  const k = localDateKey(t);
   return FESTIVALS_2026[k] || null;
 }
 
@@ -6996,17 +7122,17 @@ function parseDateFromText(text) {
 
   // "today"
   if (/\btoday\b/.test(t)) {
-    return today.toISOString().split('T')[0];
+    return localDateKey(today);
   }
   // "tomorrow"
   if (/\btomorrow\b/.test(t) || /\btmrw\b/.test(t)) {
     const d = new Date(today); d.setDate(d.getDate()+1);
-    return d.toISOString().split('T')[0];
+    return localDateKey(d);
   }
   // "day after tomorrow"
   if (/\bday after tomorrow\b/.test(t)) {
     const d = new Date(today); d.setDate(d.getDate()+2);
-    return d.toISOString().split('T')[0];
+    return localDateKey(d);
   }
   // "next monday/tuesday/etc"
   let m = t.match(/\bnext\s+(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/);
@@ -7016,7 +7142,7 @@ function parseDateFromText(text) {
     if (diff <= 0) diff += 7;
     diff += 7;
     const d = new Date(today); d.setDate(d.getDate()+diff);
-    return d.toISOString().split('T')[0];
+    return localDateKey(d);
   }
   // "monday/tuesday/etc" (this week's coming)
   m = t.match(/\b(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/);
@@ -7025,18 +7151,18 @@ function parseDateFromText(text) {
     let diff = target - today.getDay();
     if (diff <= 0) diff += 7;
     const d = new Date(today); d.setDate(d.getDate()+diff);
-    return d.toISOString().split('T')[0];
+    return localDateKey(d);
   }
   // "in X days" / "after X days"
   m = t.match(/\b(?:in|after)\s+(\d+)\s+days?\b/);
   if (m) {
     const d = new Date(today); d.setDate(d.getDate()+parseInt(m[1]));
-    return d.toISOString().split('T')[0];
+    return localDateKey(d);
   }
   // "next week"
   if (/\bnext week\b/.test(t)) {
     const d = new Date(today); d.setDate(d.getDate()+7);
-    return d.toISOString().split('T')[0];
+    return localDateKey(d);
   }
   // Specific date "May 15", "15 May", "15/5", "15/05/2026"
   const months = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
@@ -7048,7 +7174,7 @@ function parseDateFromText(text) {
     let year = today.getFullYear();
     let d = new Date(year, mon, day);
     if (d < today) d = new Date(year+1, mon, day);
-    return d.toISOString().split('T')[0];
+    return localDateKey(d);
   }
   m = t.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+(\d{1,2})/);
   if (m) {
@@ -7057,7 +7183,7 @@ function parseDateFromText(text) {
     let year = today.getFullYear();
     let d = new Date(year, mon, day);
     if (d < today) d = new Date(year+1, mon, day);
-    return d.toISOString().split('T')[0];
+    return localDateKey(d);
   }
   // "DD/MM" or "DD/MM/YYYY"
   m = text.match(/\b(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?\b/);
@@ -7068,7 +7194,7 @@ function parseDateFromText(text) {
     if (year < 100) year += 2000;
     let d = new Date(year, mon, day);
     if (!m[3] && d < today) d = new Date(year+1, mon, day);
-    return d.toISOString().split('T')[0];
+    return localDateKey(d);
   }
   return null;
 }
@@ -7152,7 +7278,7 @@ function getRecentMoodPattern() {
   for (let i = 0; i < 5; i++) {
     const d = new Date(todayDate);
     d.setDate(d.getDate() - i);
-    const k = d.toISOString().split("T")[0];
+    const k = localDateKey(d);
     const m = state.mood[k];
     if (!m) break;
     if (m.mood === 'low' || m.mood === 'meh') lowDays++;
@@ -7168,7 +7294,7 @@ function getRecentStressPattern() {
   for (let i = 0; i < 5; i++) {
     const d = new Date(todayDate);
     d.setDate(d.getDate() - i);
-    const k = d.toISOString().split("T")[0];
+    const k = localDateKey(d);
     const m = state.mood[k];
     if (!m) break;
     if (m.stress === 'high' || m.stress === 'extreme') highDays++;
@@ -7184,7 +7310,7 @@ function getWalkSkipPattern() {
   for (let i = 1; i <= 4; i++) {
     const d = new Date(todayDate);
     d.setDate(d.getDate() - i);
-    const k = d.toISOString().split("T")[0];
+    const k = localDateKey(d);
     const km = state.kmLog[k] || 0;
     if (km === 0) skipped++;
     else break;
@@ -7328,7 +7454,7 @@ function getCompanionMessage() {
   if (h >= 21 || h < 4) {
     const t = new Date();
     t.setDate(t.getDate() + 1);
-    const tomorrowKey = t.toISOString().split('T')[0];
+    const tomorrowKey = localDateKey(t);
     const tomNote = state.tomorrowNotes[tomorrowKey];
     if (tomNote && tomNote.text) {
       return `Tomorrow noted: "${tomNote.text}". Sleep well, friend.`;
@@ -7517,7 +7643,30 @@ function renderEnergyStreak() {
   bestEl.textContent = best > 0 ? `· Best ${best}` : '';
   if (statusEl) {
     const lastDate = state.energyStreak.lastReset.slice(0, 10);
-    statusEl.innerHTML = `Counting from <b>${lastDate}</b>. Today is <b>day ${days}</b>.<br><br>Tap <b>↻ Broke streak today</b> if it happened — your current streak saves to history and counter restarts. Tap <b>✏️ Edit start date</b> if you want to set a different beginning.`;
+    // v8: horizontal climb strip — ascending steps toward a peak. The climber
+    // sits on the step for the current milestone. Motivating, compact, no scroll.
+    const milestones = [0, 3, 7, 14, 21, 30, 50, 75, 100];
+    let reached = 0;
+    for (let i = 0; i < milestones.length; i++) { if (days >= milestones[i]) reached = i; }
+    const nextMs = milestones[Math.min(reached + 1, milestones.length - 1)];
+    const climb = milestones.map((ms, i) => {
+      const on = i <= reached;
+      const isClimber = i === reached;
+      const h = 14 + i * 6; // steps rise to the right
+      return `<div class="climb-step${on ? ' on' : ''}" style="height:${h}px">
+                ${isClimber ? '<span class="climb-figure">🧗</span>' : ''}
+                <span class="climb-ms">${ms === 0 ? '·' : ms}</span>
+              </div>`;
+    }).join('');
+    const peakLine = days >= 100
+      ? 'Summit. Extraordinary.'
+      : `${days} day${days === 1 ? '' : 's'} up · next ridge at ${nextMs}`;
+    statusEl.innerHTML = `
+      <div class="climb-strip">${climb}</div>
+      <div class="climb-caption">${peakLine}</div>
+      <div style="margin-top:10px;">Counting from <b>${lastDate}</b>.<br>
+      Tap <b>↻ Broke streak today</b> if it happened — your streak saves to history and restarts.
+      Tap <b>✏️ Edit start date</b> to set a different beginning.</div>`;
   }
   // History
   if (historyEl) {
@@ -7566,7 +7715,7 @@ function computeMoodInsight() {
     for (let i = 1; i <= 3; i++) {
       const d = new Date(endDate);
       d.setDate(d.getDate() + i);
-      const key = d.toISOString().slice(0, 10);
+      const key = localDateKey(d);
       const m = state.mood && state.mood[key];
       if (m && m.mood && moodScore[m.mood]) {
         postResetSum += moodScore[m.mood];
@@ -7639,6 +7788,160 @@ function fmtClinicDur(ms) {
   const m = mins % 60;
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
+// ===== v8: Steering companion =====
+// One gentle, movement-driven line. Picks the single most relevant nudge for
+// right now. Never nags: each nudge can be dismissed for the day. Runs entirely
+// off saumyaLog (arrived/left clinic+home) — zero manual input.
+function _steerDismissed(key) {
+  try {
+    const d = JSON.parse(localStorage.getItem('saumyaSteerDismiss') || '{}');
+    return d[key] === today();
+  } catch { return false; }
+}
+function steerDismiss(key) {
+  try {
+    const d = JSON.parse(localStorage.getItem('saumyaSteerDismiss') || '{}');
+    d[key] = today();
+    localStorage.setItem('saumyaSteerDismiss', JSON.stringify(d));
+  } catch {}
+  renderSteeringNudge();
+}
+function _todayEvt(key) {
+  const log = (state.saumyaLog && state.saumyaLog[today()]) || [];
+  return log.find(e => e.eventKey === key) || null;
+}
+// Best (earliest) clinic arrival in minutes over the last N days, excluding today,
+// and excluding weekends/holidays (late by design when Pranshu is along).
+function _bestArrivalMins(daysBack = 30) {
+  const recs = getClinicAttendance(daysBack);
+  let best = null;
+  for (const r of recs) {
+    if (r.isToday || r.isSunday || !r.arrivalTs) continue;
+    const d = new Date(r.arrivalTs);
+    const mins = d.getHours() * 60 + d.getMinutes();
+    if (best === null || mins < best) best = mins;
+  }
+  return best;
+}
+
+function renderSteeringNudge() {
+  const slot = document.getElementById('steerCardSlot');
+  if (!slot) return;
+  // Only on the Personal tab
+  if (document.body.classList.contains('app-b-active') ||
+      document.body.classList.contains('app-c-active')) { slot.innerHTML = ''; return; }
+
+  const now = new Date();
+  const hour = now.getHours();
+  const dow = now.getDay(); // 0 Sun, 6 Sat
+  const nowMins = hour * 60 + now.getMinutes();
+
+  const leftHome   = _todayEvt('left_home');
+  const arrClinic  = _todayEvt('arrived_clinic');
+  const leftClinic = _todayEvt('left_clinic');
+  const arrHome    = _todayEvt('arrived_home');
+
+  let card = null;
+
+  // (C/D) SAFETY CHECK — highest priority. Left clinic 7–9pm on a weekday/Saturday
+  // but no arrived_home within 30 min. Gentle "you ok?" — not a guarantee.
+  if (!card && leftClinic && !arrHome && dow !== 0) {
+    const lc = new Date(leftClinic.ts);
+    const lcHour = lc.getHours();
+    const minsSince = Math.round((Date.now() - leftClinic.ts) / 60000);
+    if (lcHour >= 19 && lcHour < 21 && minsSince >= 30 && minsSince < 240 && !_steerDismissed('safety_home')) {
+      card = {
+        cls: 'safety', icon: '🛟',
+        title: 'You ok? Reached home safe?',
+        sub: `You left clinic at ${leftClinic.time}. Just checking you got home alright — no rush, tap when you\'re back.`,
+        key: 'safety_home'
+      };
+    }
+  }
+  // Safety: left home but not at clinic within 20 min (morning commute)
+  if (!card && leftHome && !arrClinic) {
+    const minsSince = Math.round((Date.now() - leftHome.ts) / 60000);
+    if (minsSince >= 20 && minsSince < 180 && hour >= 8 && hour < 14 && !_steerDismissed('safety_clinic')) {
+      card = {
+        cls: 'safety', icon: '🛟',
+        title: 'Everything ok on the way?',
+        sub: `You left home at ${leftHome.time} but haven\'t reached clinic yet. All good?`,
+        key: 'safety_clinic'
+      };
+    }
+  }
+
+  // (B) POWER HOURS — arrived clinic early (before ~10:30am). Prompt to use the
+  // best hours: PT-acquisition calls, staff supervision, big-case planning.
+  if (!card && arrClinic && !_steerDismissed('power_hours')) {
+    const ac = new Date(arrClinic.ts);
+    const acMins = ac.getHours() * 60 + ac.getMinutes();
+    if (acMins <= 10 * 60 + 30 && hour < 13) {
+      card = {
+        cls: 'power', icon: '⚡',
+        title: `In early — ${arrClinic.time}. Use the quiet hours.`,
+        sub: 'Best window for the things that grow the clinic: PT-acquisition calls, staff supervision, or planning a big case.',
+        key: 'power_hours'
+      };
+    }
+  }
+
+  // (D) OVERWORK PULL-HOME — still at clinic late (no leave logged), past ~8pm on
+  // a weekday. Gentle pull toward home/family.
+  if (!card && arrClinic && !leftClinic && hour >= 20 && dow !== 0 && !_steerDismissed('pull_home')) {
+    card = {
+      cls: 'pull', icon: '🌙',
+      title: 'Long day. Time to head home soon?',
+      sub: 'Pranshu and Shweta are home. The clinic will keep till tomorrow — protect the evening.',
+      key: 'pull_home'
+    };
+  }
+
+  // (A) MORNING PUSH — before leaving for clinic, nudge toward personal-best arrival.
+  // Weekends/holidays: expect late (Pranshu along) — encourage, no guilt.
+  if (!card && !arrClinic && hour >= 7 && hour < 12 && !_steerDismissed('morning_push')) {
+    if (dow === 0 || dow === 6) {
+      card = {
+        cls: 'push', icon: '🌅',
+        title: 'Weekend pace — no pressure on the clock.',
+        sub: 'Pranshu\'s along today. Get there when you get there; the day still counts.',
+        key: 'morning_push'
+      };
+    } else {
+      const best = _bestArrivalMins(30);
+      if (best !== null) {
+        card = {
+          cls: 'push', icon: '🌅',
+          title: `Your clinic opens with you.`,
+          sub: `Your best lately was ${fmtMinsAsTime(best)}. A little earlier today sets the whole day\'s tone.`,
+          key: 'morning_push'
+        };
+      } else {
+        card = {
+          cls: 'push', icon: '🌅',
+          title: 'Your clinic opens with you.',
+          sub: 'Heading in a touch earlier sets the tone for the whole day.',
+          key: 'morning_push'
+        };
+      }
+    }
+  }
+
+  if (!card) { slot.innerHTML = ''; return; }
+
+  slot.innerHTML = `
+    <div class="steer-card ${card.cls}">
+      <div class="steer-icon">${card.icon}</div>
+      <div class="steer-text">
+        <div class="steer-title">${escapeHtml(card.title)}</div>
+        <div class="steer-sub">${escapeHtml(card.sub)}</div>
+        <div class="steer-actions">
+          <button class="steer-btn" onclick="steerDismiss('${card.key}')">Dismiss</button>
+        </div>
+      </div>
+    </div>`;
+}
+
 function renderClinicBlock() {
   const block = $("clinicBlock");
   if (!block) return;
@@ -7979,8 +8282,8 @@ function renderWakeCard() {
     card.innerHTML = `
       <div class="wake-card-icon">☀️</div>
       <div class="wake-card-main">
-        <div class="wake-card-title">Tap when you wake up</div>
-        <div class="wake-card-hint">Logs your start-of-day timestamp</div>
+        <div class="wake-card-title">Waiting for your morning</div>
+        <div class="wake-card-hint">Logs automatically once you're properly up</div>
       </div>
       <div class="wake-card-actions">
         <button class="row-action" id="wakeGraphBtn">📊</button>
@@ -7993,7 +8296,7 @@ function renderWakeCard() {
   }
   card.onclick = () => {
     if (getTodayWake()) return; // already logged, do nothing on whole-card tap
-    logWakeNow();
+    logWakeNow(); // silent manual fallback if auto-wake ever misses
   };
 }
 
@@ -8629,7 +8932,7 @@ function recordSleep() {
 function checkEstimatedSleep() {
   if (!state.lastActiveAt) return;
   const lastActive = new Date(state.lastActiveAt);
-  const lastActiveDate = lastActive.toISOString().split("T")[0];
+  const lastActiveDate = localDateKey(lastActive);
   const lastActiveHour = lastActive.getHours();
   const lastActiveMin = lastActive.getMinutes();
   // Only if last active was a different day AND was late evening (after 9pm)
@@ -8910,7 +9213,7 @@ function renderJournalSection(section, sectionEl) {
   if (isEvening) {
     const t = new Date();
     t.setDate(t.getDate() + 1);
-    tomorrowDate = t.toISOString().split('T')[0];
+    tomorrowDate = localDateKey(t);
   }
   const existingTomorrowNote = isEvening ? (state.tomorrowNotes[tomorrowDate] || null) : null;
   const tomorrowField = isEvening ? `
@@ -8988,7 +9291,7 @@ function renderKmGraph() {
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(todayDate);
     d.setDate(d.getDate() - i);
-    const k = d.toISOString().split("T")[0];
+    const k = localDateKey(d);
     const km = state.kmLog[k] || 0;
     points.push({ date: k, km });
     if (km > max) max = km;
@@ -9210,6 +9513,8 @@ const APP_B_DEFAULTS = () => ({
   learning: [],         // {id, ts, tag, patient, good, bad, change, photoDone, complication}
   billing: [],          // {id, ts, patient, amount, checks: {...}, note}
   pending: [],          // {id, ts, text, doneAt}  — voice/text quick capture
+  patients: [],         // v8: {id, ts, text, doneAt} — patients whose planning is owed
+  goals: [],            // v8: {id, ts, text, dueDate} — pro goals with reverse countdown
 });
 
 function ensureAppB() {
@@ -9541,6 +9846,8 @@ function renderAppB() {
 
   // Pending list (always rendered)
   if (typeof renderPendingList === 'function') renderPendingList();
+  if (typeof renderPatientList === 'function') renderPatientList();
+  if (typeof renderGoalList === 'function') renderGoalList();
 
   // Attendance sub line — show today's arrival or last arrival
   const attSub = document.getElementById('bAttendanceSub');
@@ -10835,6 +11142,97 @@ function bDeletePending(id) {
   renderPendingList();
 }
 
+// ===== v8: Patients to plan =====
+function bAddPatient(text) {
+  ensureAppB();
+  const t = (text || '').trim();
+  if (!t) return;
+  state.appB.patients.unshift({ id: genBId('pt'), ts: Date.now(), text: t, doneAt: null });
+  bSave();
+  const inp = $('bPatientInput'); if (inp) inp.value = '';
+  renderPatientList();
+}
+function bTogglePatient(id) {
+  ensureAppB();
+  const p = state.appB.patients.find(x => x.id === id);
+  if (!p) return;
+  p.doneAt = p.doneAt ? null : Date.now();
+  bSave();
+  renderPatientList();
+}
+function bDeletePatient(id) {
+  ensureAppB();
+  state.appB.patients = state.appB.patients.filter(x => x.id !== id);
+  bSave();
+  renderPatientList();
+}
+function renderPatientList() {
+  ensureAppB();
+  const list = $('bPatientList');
+  if (!list) return;
+  const items = [...state.appB.patients].sort((a, b) => {
+    if (!!a.doneAt !== !!b.doneAt) return a.doneAt ? 1 : -1;
+    return b.ts - a.ts;
+  });
+  let html = '';
+  for (const p of items) {
+    html += `
+      <div class="b-patient-item${p.doneAt ? ' done' : ''}">
+        <button class="b-patient-check" onclick="bTogglePatient('${p.id}')">${p.doneAt ? '✓' : ''}</button>
+        <span class="b-patient-item-text">${escapeHtml(p.text)}</span>
+        <button class="b-patient-item-del" onclick="bDeletePatient('${p.id}')">✕</button>
+      </div>`;
+  }
+  list.innerHTML = html;
+}
+
+// ===== v8: Goals with reverse countdown =====
+function bAddGoal(text, dueDate) {
+  ensureAppB();
+  const t = (text || '').trim();
+  if (!t || !dueDate) return;
+  state.appB.goals.unshift({ id: genBId('goal'), ts: Date.now(), text: t, dueDate });
+  bSave();
+  const gt = $('bGoalText'); if (gt) gt.value = '';
+  const gd = $('bGoalDate'); if (gd) gd.value = '';
+  renderGoalList();
+}
+function bDeleteGoal(id) {
+  ensureAppB();
+  state.appB.goals = state.appB.goals.filter(x => x.id !== id);
+  bSave();
+  renderGoalList();
+}
+function renderGoalList() {
+  ensureAppB();
+  const list = $('bGoalList');
+  if (!list) return;
+  const todayKey = today();
+  const goals = [...state.appB.goals].sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''));
+  let html = '';
+  for (const g of goals) {
+    // Days remaining (local-date based, no UTC drift)
+    const [ty, tm, td] = todayKey.split('-').map(Number);
+    const [gy, gm, gd] = (g.dueDate || '').split('-').map(Number);
+    const t0 = new Date(ty, tm - 1, td);
+    const g0 = new Date(gy, gm - 1, gd);
+    const days = Math.round((g0 - t0) / (24 * 60 * 60 * 1000));
+    let cls = 'far', label;
+    if (days < 0) { cls = 'near'; label = `${Math.abs(days)} days overdue`; }
+    else if (days === 0) { cls = 'near'; label = 'Due today'; }
+    else { cls = days <= 14 ? 'near' : (days <= 45 ? 'mid' : 'far'); label = `${days} days left`; }
+    html += `
+      <div class="b-goal-item">
+        <div class="b-goal-item-main">
+          <div class="b-goal-item-text">${escapeHtml(g.text)}</div>
+          <div class="b-goal-item-days ${cls}">${label}</div>
+        </div>
+        <button class="b-goal-item-del" onclick="bDeleteGoal('${g.id}')">✕</button>
+      </div>`;
+  }
+  list.innerHTML = html;
+}
+
 function bEditPending(id, newText) {
   ensureAppB();
   const p = state.appB.pending.find(x => x.id === id);
@@ -11225,8 +11623,7 @@ function wireAppB() {
         bucketSel.querySelectorAll('[data-new-bucket]').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
       };
-    });
-  }
+    });  }
 
   // Attendance tile (moved from Personal toolbar)
   const attBtn = document.getElementById('bAttendanceBtn');
@@ -11237,6 +11634,18 @@ function wireAppB() {
     };
   }
   // Manual "I'm here" / "Leaving" buttons removed 2026-05-21 — full Tasker automation.
+
+  // v8: Patients-to-plan add (button + Enter)
+  const ptAdd = document.getElementById('bPatientAdd');
+  if (ptAdd) ptAdd.onclick = () => bAddPatient($('bPatientInput').value);
+  const ptInput = document.getElementById('bPatientInput');
+  if (ptInput) ptInput.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); bAddPatient(ptInput.value); } };
+
+  // v8: Goals-countdown add (button + Enter on text field)
+  const goalAdd = document.getElementById('bGoalAdd');
+  if (goalAdd) goalAdd.onclick = () => bAddGoal($('bGoalText').value, $('bGoalDate').value);
+  const goalText = document.getElementById('bGoalText');
+  if (goalText) goalText.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); bAddGoal(goalText.value, $('bGoalDate').value); } };
 
   // Minimal-mode quick row
   $('bQuickParkBtn').onclick = () => openDecisionForm(null);
@@ -11413,11 +11822,13 @@ function maybeMorningBloom() {
   try {
     const force = location.search.indexOf('bloom=1') >= 0 || location.hash.indexOf('bloom') >= 0;
     const h = new Date().getHours();
-    const todayKey = (typeof today === 'function' ? today() : new Date().toISOString().slice(0,10));
+    const todayKey = (typeof today === 'function' ? today() : localDateKey(new Date()));
     let shown = null; try { shown = localStorage.getItem('saumyaBloomDate'); } catch(e){}
     if (!force && (h < 4 || h >= 11 || shown === todayKey)) { el.remove(); return; }
-    try { localStorage.setItem('saumyaBloomDate', todayKey); } catch(e){}
+    // Display FIRST, then mark as shown — so a failure before display doesn't
+    // burn today's bloom without the user ever seeing it.
     el.classList.add('show');
+    try { localStorage.setItem('saumyaBloomDate', todayKey); } catch(e){}
     let done = false;
     const dismiss = () => { if (done) return; done = true; el.classList.add('fade'); setTimeout(() => { try { el.remove(); } catch(e){} }, 1150); };
     el.addEventListener('click', dismiss, { once: true });
@@ -11441,7 +11852,11 @@ function render() {
 
   const dateOpts = { weekday: "long", day: "numeric", month: "long" };
   $("dateLabel").textContent = new Date().toLocaleDateString("en-IN", dateOpts);
-  const streak = calcStreak();
+  // Unified streak: the header now shows the same energy-streak day count as the
+  // detail card below, so there's ONE consistent number (was: header used
+  // calcStreak() = task-history days, which conflicted and showed 0).
+  const energyDays = (typeof getEnergyDays === 'function') ? getEnergyDays() : null;
+  const streak = (energyDays !== null && energyDays >= 0) ? energyDays : calcStreak();
   if (streak > state.bestStreak) { state.bestStreak = streak; saveState(); }
   $("streakNum").textContent = streak;
   $("perfectNum").textContent = Object.values(state.history).filter(Boolean).length;
@@ -11459,6 +11874,7 @@ function render() {
   renderWeeklyReport();
   renderEnergyStreak();
   renderClinicBlock();
+  renderSteeringNudge();
   renderWakeCard();
   renderEveningCard();
 
@@ -11652,17 +12068,52 @@ function applyEvent(event, ts) {
   if (!state.saumyaLog[dateKey]) state.saumyaLog[dateKey] = [];
   const log = state.saumyaLog[dateKey];
 
-  // Idempotency: suppress if an event of same kind exists within 5 min of this ts.
-  const win = 5 * 60 * 1000;
-  const dup = log.find(e => e.eventKey === event && Math.abs((e.ts || 0) - eventTs) < win);
-  if (dup) return null;
+  // Format time string from the actual event timestamp (used by all branches below)
+  const fmtTime = (dObj) => {
+    let hh = dObj.getHours();
+    const mm = String(dObj.getMinutes()).padStart(2, '0');
+    const ap = hh >= 12 ? 'PM' : 'AM';
+    hh = hh % 12; if (hh === 0) hh = 12;
+    return `${hh}:${mm} ${ap}`;
+  };
 
-  // Format time string from the actual event timestamp
-  let h = eventDate.getHours();
-  const m = String(eventDate.getMinutes()).padStart(2, '0');
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  h = h % 12; if (h === 0) h = 12;
-  const timeStr = `${h}:${m} ${ampm}`;
+  // Dedup strategy for redundant triggers (WiFi + geofence both fire the same event):
+  //   ARRIVALS (arrived_*, woke_up) → FIRST of the day wins. Once logged today,
+  //     silently ignore later duplicates (whichever sensor fired first is kept).
+  //   DEPARTURES (left_*) → LAST of the day wins. A real evening departure should
+  //     overwrite an earlier parking-lot blip, so we update the existing entry's time.
+  const ARRIVAL_EVENTS = ['arrived_clinic', 'arrived_home', 'woke_up'];
+  const DEPARTURE_EVENTS = ['left_clinic', 'left_home'];
+  const existing = log.find(e => e.eventKey === event);
+
+  if (existing) {
+    if (ARRIVAL_EVENTS.includes(event)) {
+      // First-of-day already recorded — ignore this later duplicate entirely.
+      return null;
+    }
+    if (DEPARTURE_EVENTS.includes(event)) {
+      if (eventTs > (existing.ts || 0)) {
+        // Later departure — update the kept entry to this time.
+        const timeStr = fmtTime(eventDate);
+        existing.ts = eventTs;
+        existing.time = timeStr;
+        existing.text = `${evt.msg} · ${timeStr}`;
+        existing.id = 'evt_' + eventTs;
+        saveState();
+        if (typeof updateAuroraFromDay === 'function') updateAuroraFromDay();
+        if (typeof renderSaumyaChat === 'function') renderSaumyaChat();
+        if (typeof renderSteeringNudge === 'function') renderSteeringNudge();
+        return { ok: true, evt, updated: true };
+      }
+      // Earlier or equal departure than one already kept — ignore.
+      return null;
+    }
+    // Any other event type: keep the old short-window guard against rapid dupes.
+    const win = 5 * 60 * 1000;
+    if (Math.abs((existing.ts || 0) - eventTs) < win) return null;
+  }
+
+  const timeStr = fmtTime(eventDate);
 
   log.push({
     id: 'evt_' + eventTs,
@@ -11684,6 +12135,7 @@ function applyEvent(event, ts) {
   }
   if (event === 'arrived_home' && typeof renderEveningCard === 'function') renderEveningCard();
   if (event === 'woke_up' && typeof renderWakeCard === 'function') renderWakeCard();
+  if (typeof renderSteeringNudge === 'function') renderSteeringNudge();
 
   return { ok: true, evt };
 }
@@ -11749,7 +12201,11 @@ async function syncFromServer() {
   try {
     let lastSync = 0;
     try { lastSync = parseInt(localStorage.getItem('saumyaLastSync')) || 0; } catch {}
-    if (!lastSync) lastSync = Date.now() - 24 * 60 * 60 * 1000;
+    // First sync (or cleared storage): look back 7 days, not 24h. The server now
+    // holds ~50 events, so after a multi-day gap this still catches everything that
+    // is still buffered. Re-pulling already-seen events is harmless — applyEvent is
+    // idempotent (first-of-day arrivals ignored, departures only move forward).
+    if (!lastSync) lastSync = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
     const url = `${SAUMYA_SYNC_ENDPOINT}?since=${lastSync}&secret=${encodeURIComponent(SAUMYA_SECRET)}`;
     const r = await fetch(url, { method: 'GET', cache: 'no-cache' });
@@ -11953,7 +12409,7 @@ function attachListeners() {
       const text = (ta.value || "").trim();
       const t = new Date();
       t.setDate(t.getDate() + 1);
-      const tomorrowKey = t.toISOString().split('T')[0];
+      const tomorrowKey = localDateKey(t);
       if (!text) {
         // Empty = delete the note
         delete state.tomorrowNotes[tomorrowKey];
@@ -12581,7 +13037,7 @@ function renderHeatmap() {
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(todayDate);
     d.setDate(d.getDate() - i);
-    const k = d.toISOString().split("T")[0];
+    const k = localDateKey(d);
     const ratio = getDayCompletionRatio(k);
     let cls = '';
     if (ratio >= 1) cls = 'perfect';
@@ -12768,7 +13224,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION STAMP =====
 // Flashes a version label bottom-center for 4s on every load, so we can
 // instantly confirm which code is actually live (no Find-in-page needed).
-const SAUMYA_BUILD = "v7 · 23-May";
+const SAUMYA_BUILD = "v8 · 31-May";
 (function showBuildStamp() {
   try {
     const s = document.createElement('div');
@@ -13036,7 +13492,7 @@ function pruneOldSaumyaPhotos() {
   if (!state.saumyaLog) return;
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - 7);
-  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  const cutoffStr = localDateKey(cutoff);
   for (const date of Object.keys(state.saumyaLog)) {
     if (date < cutoffStr) {
       // Replace photos with placeholder (keep text entries)
@@ -13122,7 +13578,7 @@ function saumyaToggleYesterday() {
   } else {
     const y = new Date();
     y.setDate(y.getDate() - 1);
-    saumyaViewingDate = y.toISOString().slice(0, 10);
+    saumyaViewingDate = localDateKey(y);
   }
   renderSaumyaChat();
 }
@@ -13340,14 +13796,7 @@ window.addEventListener('popstate', (event) => {
     try { history.pushState({ view: 'main' }, '', ''); } catch(e) {}
     return;
   }
-// Register service worker for installability + offline (safe, network-first).
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch((e) => console.log('SW register skipped:', e));
-  });
-}
-
-// 6. Nothing to go back to — re-push state to keep app open
+  // 6. Nothing to go back to — re-push state to keep app open
   try { history.pushState({ view: 'main' }, '', ''); } catch(e) {}
 });
 
