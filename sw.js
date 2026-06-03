@@ -1,36 +1,38 @@
-/* Saumya service worker — minimal & safe.
-   Network-first so you always get the freshest app; falls back to cache only
-   when offline. Never caches /api/ calls (those must always hit the network). */
-const CACHE = 'saumya-v7';
-const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+// Saumya service worker — minimal, network-first.
+// Its job is mainly to exist with a fetch handler so the browser treats Saumya
+// as an installable app (real icon, no browser badge). It does light offline
+// caching of the shell so the app still opens if the network is briefly down.
 
-self.addEventListener('install', (e) => {
+const CACHE = 'saumya-v8-7';
+const SHELL = ['/', '/index.html', '/manifest.json'];
+
+self.addEventListener('install', (event) => {
   self.skipWaiting();
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL).catch(() => {})));
+  event.waitUntil(
+    caches.open(CACHE).then((c) => c.addAll(SHELL).catch(() => {}))
+  );
 });
 
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
 
-self.addEventListener('fetch', (e) => {
-  const url = new URL(e.request.url);
-  // Never intercept API or cross-origin (fonts, weather) — let them hit network directly.
-  if (url.pathname.startsWith('/api/') || url.origin !== self.location.origin) return;
-  if (e.request.method !== 'GET') return;
-
-  // Network-first; fall back to cache when offline.
-  e.respondWith(
-    fetch(e.request)
+// Network-first: always try the live network, fall back to cache when offline.
+// (Saumya stores its data in localStorage, not here, so this is only the shell.)
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  event.respondWith(
+    fetch(req)
       .then((res) => {
         const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+        caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
         return res;
       })
-      .catch(() => caches.match(e.request).then((r) => r || caches.match('./index.html')))
+      .catch(() => caches.match(req).then((hit) => hit || caches.match('/index.html')))
   );
 });
