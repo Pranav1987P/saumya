@@ -492,6 +492,13 @@ body::before {
 .elog-unseen { opacity: 0.5; }
 .elog-unseen .elog-dot { color: rgba(226,232,240,0.4); }
 .elog-unseen .elog-time { font-style: italic; }
+.event-log-days-title { font-size: 11px; color: rgba(226,232,240,0.5); letter-spacing: 0.3px; margin: 16px 0 6px; }
+.elog-day { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 12.5px; }
+.elog-day:last-child { border-bottom: none; }
+.elog-day-name { color: rgba(226,232,240,0.7); }
+.elog-day-icons { color: rgba(226,232,240,0.85); letter-spacing: 1px; text-align: right; }
+.elog-day-empty .elog-day-name { color: rgba(226,232,240,0.45); }
+.elog-day-empty .elog-day-icons { color: rgba(248,180,180,0.6); font-style: italic; letter-spacing: 0; }
 .event-log-recent-title { font-size: 10px; color: rgba(226,232,240,0.35); text-transform: uppercase; letter-spacing: 1px; margin: 14px 0 2px; }
 body.app-b-active #eventLogCard { display: none !important; }
 /* 7 June clinic anniversary */
@@ -886,8 +893,8 @@ body.app-b-active #anniversaryCard { display: none !important; }
   animation: nowGlow 5s ease-in-out infinite;
 }
 @keyframes nowGlow {
-  0%, 100% { box-shadow: 0 0 10px rgba(45,212,191,0.08); }
-  50% { box-shadow: 0 0 16px rgba(45,212,191,0.16); }
+  0%, 100% { box-shadow: 0 0 14px rgba(45,212,191,0.14); }
+  50% { box-shadow: 0 0 26px rgba(45,212,191,0.28); }
 }
 .now-card:active { transform: scale(0.99); }
 .now-card.evening {
@@ -1781,7 +1788,6 @@ body.app-b-active #anniversaryCard { display: none !important; }
 .km-svg { width: 100%; height: 80px; display: block; }
 .km-stats { display: flex; gap: 10px; margin-top: 8px; font-size: 12px; color: var(--text-faint); justify-content: space-between; }
 .km-empty { font-size: 14px; color: var(--text-faint); font-style: italic; padding: 8px 0; text-align: center; font-family: 'Cormorant Garamond', 'Cormorant Garamond Fallback', serif; }
-.km-strava-link { display: inline-block; margin-top: 8px; font-size: 12px; color: var(--violet); text-decoration: none; }
 
 /* MANTRAS */
 .gayatri-image-wrap {
@@ -5399,6 +5405,8 @@ body.app-c-active .app-b { display: none !important; }
 
   <div id="nowCardSlot"></div>
 
+  <div id="saumyaLife"></div>
+
   <!-- v8: steering companion — one gentle line driven by movement events
        (morning push / power hours / overwork pull / safety check). -->
   <div id="steerCardSlot"></div>
@@ -5511,13 +5519,13 @@ body.app-c-active .app-b { display: none !important; }
       <div class="es-journey" aria-hidden="true">
         <svg viewBox="0 0 280 96" preserveAspectRatio="xMidYMid meet" width="100%" height="90">
           <defs>
-            <radialGradient id="aura" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff3cf" stop-opacity="0.85"/><stop offset="42%" stop-color="#ffce63" stop-opacity="0.38"/><stop offset="100%" stop-color="#f7b53d" stop-opacity="0"/></radialGradient>
+            <radialGradient id="aura" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff3cf" stop-opacity="0.14"/><stop offset="60%" stop-color="#ffce63" stop-opacity="0.26"/><stop offset="100%" stop-color="#f7b53d" stop-opacity="0"/></radialGradient>
             <linearGradient id="dpath" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="rgba(251,191,36,0.12)"/><stop offset="1" stop-color="rgba(251,215,150,0.75)"/></linearGradient>
           </defs>
           <path d="M6,86 L34,82 L62,78 L92,72 L122,66 L148,61 L168,57" fill="none" stroke="url(#dpath)" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="1 6.5"/>
           <g fill="#fbd97a"><circle cx="34" cy="82" r="1.4" opacity="0.5"/><circle cx="62" cy="78" r="1.4" opacity="0.58"/><circle cx="92" cy="72" r="1.5" opacity="0.66"/><circle cx="122" cy="66" r="1.6" opacity="0.74"/><circle cx="148" cy="61" r="1.6" opacity="0.82"/></g>
           <g class="es-climber-j">
-            <circle r="6.5" fill="rgba(251,191,36,0.20)"/><circle cx="0" cy="-3.4" r="2.3" fill="#fff2cc"/><rect x="-1.4" y="-1" width="2.8" height="6" rx="1.4" fill="#fff2cc"/>
+            <circle r="7" fill="rgba(251,191,36,0.16)"/><circle r="3.6" fill="rgba(255,238,180,0.5)"/><circle r="1.9" fill="#fff8e6"/>
             <animateMotion dur="8s" repeatCount="indefinite" calcMode="linear" keyPoints="0.08;0.85" keyTimes="0;1" path="M6,86 L34,82 L62,78 L92,72 L122,66 L148,61 L168,57"/>
             <animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;1;1;1;0" keyTimes="0;0.08;0.5;0.86;1"/>
           </g>
@@ -5554,9 +5562,9 @@ body.app-c-active .app-b { display: none !important; }
           <path class="es-trail" d="M22,126 C70,118 86,104 120,104 C150,104 168,86 196,80 C220,75 232,60 244,40"
                 fill="none" stroke="rgba(251,215,150,0.55)" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 7"/>
           <g class="es-climber">
-            <circle r="7" fill="rgba(251,191,36,0.22)"/>
-            <circle r="2.6" cy="-2" fill="#fff4d2"/>
-            <rect x="-1.3" y="0" width="2.6" height="6" rx="1.3" fill="#fff4d2"/>
+            <circle r="7.5" fill="rgba(251,191,36,0.16)"/>
+            <circle r="3.8" fill="rgba(255,238,180,0.5)"/>
+            <circle r="2" fill="#fff8e6"/>
             <animateMotion dur="9s" repeatCount="indefinite" calcMode="linear" keyPoints="0.04;0.94" keyTimes="0;1"
               path="M22,126 C70,118 86,104 120,104 C150,104 168,86 196,80 C220,75 232,60 244,40"/>
             <animate attributeName="opacity" dur="9s" repeatCount="indefinite" values="0;1;1;1;0" keyTimes="0;0.08;0.5;0.86;1"/>
@@ -5586,10 +5594,12 @@ body.app-c-active .app-b { display: none !important; }
   <details class="event-log-card" id="eventLogCard">
     <summary>🛰️ What's been logged — tap to check</summary>
     <div class="event-log-body">
-      <div class="event-log-hint">Trigger a macro on your phone, wait ~30 seconds, then tap Refresh. If it's working, the time updates below.</div>
+      <div class="event-log-hint">This shows what actually reached the server. A blank day means your phone's macros didn't fire that day — usually battery saver or sleep killing MacroDroid, not a problem with Saumya. Trigger a macro, wait ~30s, then Refresh.</div>
       <button type="button" class="event-log-refresh" id="eventLogRefresh">↻ Refresh</button>
       <div id="eventLogStatus" class="event-log-status"></div>
       <div id="eventLogChecklist"></div>
+      <div class="event-log-days-title" id="eventLogDaysTitle"></div>
+      <div id="eventLogDays"></div>
       <div class="event-log-recent-title" id="eventLogRecentTitle"></div>
       <div id="eventLogRecent"></div>
     </div>
@@ -7119,6 +7129,12 @@ function getVisibleSections() {
     baseBlocks = baseBlocks.filter(s => s.medsSection || s.tasks.some(t => ALL_MED_IDS.includes(t.id)));
   }
 
+  // v8.25: meds + the morning family block now live in dedicated cards — drop their duplicates from the schedule
+  var SAUMYA_MED_IDS = ["med_thyrox","med_linvas","med_rosumac","med_calcimax","med_probiotic","med_shilajit","med_melato"];
+  baseBlocks = baseBlocks
+    .filter(function(s){ return s.id !== "m445_family"; })
+    .map(function(s){ var _t=(s.tasks||[]).filter(function(x){ return SAUMYA_MED_IDS.indexOf(x.id)===-1; }); var _c={}; for(var _k in s){_c[_k]=s[_k];} _c.tasks=_t; return _c; })
+    .filter(function(s){ return s.tasks && s.tasks.length>0; });
   return baseBlocks
     .map(section => {
       let tasks = section.tasks
@@ -8290,6 +8306,7 @@ function _bestArrivalMins(daysBack = 30) {
 // === Change 25: Thyrox 45-min countdown ===
 // Shows a gentle countdown card after Thyrox is taken — blocks breakfast timing impulse
 function showThyroxCountdown() {
+  return; // v8.25: Thyrox now lives in the Medicines card
   const existing = document.getElementById('thyroxCountdown');
   if (existing) existing.remove();
   const card = document.createElement('div');
@@ -12459,7 +12476,6 @@ function render() {
   const energyDays = (typeof getEnergyDays === 'function') ? getEnergyDays() : null;
   const streak = (energyDays !== null && energyDays >= 0) ? energyDays : calcStreak();
   if (streak > state.bestStreak) { state.bestStreak = streak; saveState(); }
-  if ($("streakNum")) $("streakNum").textContent = streak;
   $("perfectNum").textContent = Object.values(state.history).filter(Boolean).length;
 
   updateLiveGreeting();
@@ -12955,7 +12971,7 @@ async function renderEventLog() {
       if (latest[type]) {
         return '<div class="elog-row elog-seen"><span class="elog-label"><span class="elog-dot">●</span>' + label + '</span><span class="elog-time">' + fmtEventStamp(latest[type]) + '</span></div>';
       }
-      return '<div class="elog-row elog-unseen"><span class="elog-label"><span class="elog-dot">○</span>' + label + '</span><span class="elog-time">not seen (7d)</span></div>';
+      return '<div class="elog-row elog-unseen"><span class="elog-label"><span class="elog-dot">○</span>' + label + '</span><span class="elog-time">no signal yet</span></div>';
     }).join('');
     if (status) status.textContent = 'Server holds ' + events.length + ' event(s) from the last 7 days.';
     const sorted = events.slice().sort(function(a,b){ return b.ts - a.ts; }).slice(0,12);
@@ -12964,6 +12980,33 @@ async function renderEventLog() {
       const label = EVENT_LABELS[e.event] || e.event;
       return '<div class="elog-row"><span class="elog-label">' + label + '</span><span class="elog-time">' + fmtEventStamp(e.ts) + '</span></div>';
     }).join('');
+    // Per-day capture history — honest "nothing captured" for days the phone didn't fire
+    const daysEl = document.getElementById('eventLogDays');
+    const daysTitle = document.getElementById('eventLogDaysTitle');
+    if (daysEl) {
+      const istKey = function(ts){
+        const d = new Date(new Date(ts).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+        return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      };
+      const byDay = {};
+      for (const e of events) { const k = istKey(e.ts); (byDay[k] = byDay[k] || {})[e.event] = true; }
+      const nowIst = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+      const rows = [];
+      for (let i = 0; i < 10; i++) {
+        const d = new Date(nowIst); d.setDate(d.getDate() - i);
+        const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        const dayLabel = (i === 0 ? 'Today' : i === 1 ? 'Yesterday' : d.toLocaleDateString('en-IN', { weekday:'short', day:'2-digit', month:'short' }));
+        const fired = byDay[key];
+        if (fired) {
+          const icons = EVENT_ORDER.filter(function(t){ return fired[t]; }).map(function(t){ return (EVENT_LABELS[t] || t).split(' ')[0]; }).join(' ');
+          rows.push('<div class="elog-day"><span class="elog-day-name">' + dayLabel + '</span><span class="elog-day-icons">' + icons + '</span></div>');
+        } else {
+          rows.push('<div class="elog-day elog-day-empty"><span class="elog-day-name">' + dayLabel + '</span><span class="elog-day-icons">— nothing captured</span></div>');
+        }
+      }
+      if (daysTitle) daysTitle.textContent = 'Last 10 days · what reached the server';
+      daysEl.innerHTML = rows.join('');
+    }
   } catch (err) {
     if (status) status.textContent = 'Network error — are you online?';
   }
@@ -13996,7 +14039,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v8.19 · 8-Jun";
+const SAUMYA_BUILD = "v8.26 · 28-Jun";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
@@ -14566,6 +14609,253 @@ window.addEventListener('popstate', (event) => {
   // 6. Nothing to go back to — re-push state to keep app open
   try { history.pushState({ view: 'main' }, '', ''); } catch(e) {}
 });
+
+</script>
+
+
+<style id="saumyaLifeCss">
+#saumyaLife{margin:16px 16px 0;display:flex;flex-direction:column;gap:14px;}
+#saumyaLife .sl-card{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:14px 14px 12px;}
+#saumyaLife .sl-h{font-size:13px;font-weight:700;letter-spacing:.3px;color:rgba(226,232,240,.92);margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+#saumyaLife .sl-hint{font-size:10.5px;font-weight:400;color:rgba(226,232,240,.4);letter-spacing:0;}
+#saumyaLife .sl-grp{margin-bottom:6px;}
+#saumyaLife .sl-grp-h{font-size:11px;letter-spacing:.5px;color:rgba(251,215,150,.78);margin:8px 0 4px;text-transform:uppercase;}
+#saumyaLife .sl-grp-sub{color:rgba(226,232,240,.4);text-transform:none;letter-spacing:0;font-size:10.5px;}
+#saumyaLife .sl-row{display:flex;align-items:center;gap:11px;padding:8px 4px;border-radius:10px;cursor:pointer;transition:background .15s;}
+#saumyaLife .sl-row:active{background:rgba(255,255,255,.05);}
+#saumyaLife .sl-box{width:22px;height:22px;flex:0 0 22px;border-radius:7px;border:2px solid rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:13px;color:#06100e;transition:all .15s;}
+#saumyaLife .sl-row.on .sl-box{background:var(--teal,#2dd4bf);border-color:var(--teal,#2dd4bf);}
+#saumyaLife .sl-txt{display:flex;flex-direction:column;line-height:1.25;}
+#saumyaLife .sl-name{font-size:13.5px;color:rgba(226,232,240,.9);}
+#saumyaLife .sl-row.on .sl-name{color:rgba(226,232,240,.5);text-decoration:line-through;}
+#saumyaLife .sl-note{font-size:10.5px;color:rgba(226,232,240,.42);}
+#saumyaLife .sl-row.opt .sl-name{color:rgba(226,232,240,.6);font-style:italic;}
+#saumyaLife .sl-rec-q{font-size:13px;color:rgba(226,232,240,.78);margin-bottom:10px;}
+#saumyaLife .sl-rec-btns{display:flex;gap:8px;}
+#saumyaLife .sl-rec-btn{flex:1;padding:10px 0;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);color:rgba(226,232,240,.85);font-size:12.5px;cursor:pointer;font-family:inherit;}
+#saumyaLife .sl-rec-btn.green{border-color:rgba(52,211,153,.4);}
+#saumyaLife .sl-rec-btn.amber{border-color:rgba(251,191,36,.4);}
+#saumyaLife .sl-rec-btn.red{border-color:rgba(248,113,113,.4);}
+#saumyaLife .sl-rec-result{border-radius:12px;padding:12px 14px;}
+#saumyaLife .sl-rec-result.green{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);}
+#saumyaLife .sl-rec-result.amber{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);}
+#saumyaLife .sl-rec-result.red{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);}
+#saumyaLife .sl-rec-t{font-size:14px;font-weight:700;color:rgba(226,232,240,.95);margin-bottom:3px;}
+#saumyaLife .sl-rec-b{font-size:12.5px;color:rgba(226,232,240,.72);line-height:1.42;}
+#saumyaLife .sl-rec-change{font-size:10.5px;color:rgba(226,232,240,.4);margin-top:8px;text-align:right;cursor:pointer;}
+#saumyaLife .sl-path{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+#saumyaLife .sl-stage{font-size:10.5px;padding:4px 9px;border-radius:20px;background:rgba(255,255,255,.04);color:rgba(226,232,240,.45);border:1px solid rgba(255,255,255,.06);}
+#saumyaLife .sl-stage.done{color:rgba(52,211,153,.82);border-color:rgba(52,211,153,.3);}
+#saumyaLife .sl-stage.cur{color:rgba(251,215,150,.97);border-color:rgba(251,191,36,.45);background:rgba(251,191,36,.08);}
+#saumyaLife .sl-northstar{font-size:12.5px;font-style:italic;color:rgba(251,215,150,.82);line-height:1.45;margin-bottom:10px;padding-left:10px;border-left:2px solid rgba(251,191,36,.35);}
+#saumyaLife .sl-imp-today{font-size:13px;color:rgba(226,232,240,.85);line-height:1.42;margin-bottom:10px;}
+#saumyaLife .sl-imp-label{font-size:10px;letter-spacing:.8px;color:rgba(251,215,150,.78);text-transform:uppercase;margin-right:7px;}
+#saumyaLife .sl-imp-done,#saumyaLife .sl-imp-adv{padding:8px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.03);color:rgba(226,232,240,.85);font-size:12px;cursor:pointer;font-family:inherit;}
+#saumyaLife .sl-imp-done.on{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.4);color:rgba(52,211,153,.95);}
+#saumyaLife .sl-imp-adv{font-size:11px;color:rgba(226,232,240,.55);}
+#saumyaLife .sl-vitd{padding:2px 4px;}
+#saumyaLife .sl-vitd-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+#saumyaLife .sl-vitd-name{font-size:13px;color:rgba(226,232,240,.85);}
+#saumyaLife .sl-vitd-status{font-size:11px;color:rgba(226,232,240,.5);}
+#saumyaLife .sl-vitd-btn{margin-top:8px;padding:8px 14px;border-radius:10px;border:1px solid rgba(45,212,191,.4);background:rgba(45,212,191,.08);color:var(--teal,#2dd4bf);font-size:12px;cursor:pointer;font-family:inherit;}
+#saumyaLife .sl-vitd-mini{margin-left:auto;font-size:10px;color:rgba(226,232,240,.4);background:none;border:none;cursor:pointer;font-family:inherit;}
+#saumyaLife .sl-vitd-hint{font-size:10px;color:rgba(226,232,240,.38);margin-top:6px;line-height:1.4;}
+#saumyaLife .sl-rec-score{font-size:30px;font-weight:800;line-height:1;margin-bottom:5px;color:rgba(226,232,240,.95);}
+#saumyaLife .sl-rec-result.green .sl-rec-score{color:rgba(52,211,153,.97);}
+#saumyaLife .sl-rec-result.amber .sl-rec-score{color:rgba(251,191,36,.97);}
+#saumyaLife .sl-rec-result.red .sl-rec-score{color:rgba(248,113,113,.97);}
+#saumyaLife .sl-rec-sub{font-size:11px;color:rgba(226,232,240,.6);margin-top:7px;letter-spacing:.3px;}
+#saumyaLife .sl-strava{margin-top:11px;font-size:12.5px;color:rgba(226,232,240,.82);display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+#saumyaLife .sl-strava-tag{font-size:9.5px;color:rgba(251,140,60,.9);border:1px solid rgba(251,140,60,.42);padding:1px 7px;border-radius:9px;letter-spacing:.4px;}
+body.app-b-active #saumyaLife, body.app-c-active #saumyaLife { display:none !important; }
+#vitdBanner { display:none !important; }
+</style>
+<script>
+(function(){
+  'use strict';
+  function IST(){ return new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kolkata'})); }
+  function dayKey(){ var d=IST(); return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
+  function load(k,def){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):def; }catch(e){ return def; } }
+  function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function parseYMD(s){ var p=String(s).split('-'); return Date.UTC(+p[0],+p[1]-1,+p[2]); }
+  function ymd(ms){ var d=new Date(ms); return d.getUTCFullYear()+'-'+('0'+(d.getUTCMonth()+1)).slice(-2)+'-'+('0'+d.getUTCDate()).slice(-2); }
+  function daysBetween(a,b){ return Math.round((parseYMD(b)-parseYMD(a))/86400000); }
+  function addDays(s,n){ return ymd(parseYMD(s)+n*86400000); }
+  function pickDaily(arr){ var d=IST(); return arr[(d.getFullYear()*372+d.getMonth()*31+d.getDate())%arr.length]; }
+
+  var MED_KEY='saumyaMedsV1', SKIN_KEY='saumyaSkinV1', REC_KEY='saumyaRecoveryV1', IMP_KEY='saumyaImplantV1', VITD_KEY='saumyaVitDV1';
+
+  var MEDS={ morning:{ title:'🌅 Morning', sub:'at home, before clinic', items:[
+        {id:'thyrox',name:'Thyrox 75',note:'empty stomach · 45 min before breakfast'},
+        {id:'linvas',name:'Linvas',note:'after breakfast'},
+        {id:'calcimax',name:'Calcimax Total',note:'after breakfast'} ]},
+    night:{ title:'🌙 Night', sub:'at home, after dinner', items:[
+        {id:'rosumac',name:'Rosumac',note:'after dinner'},
+        {id:'probiotics',name:'Probiotics',note:'after dinner'},
+        {id:'shilajit',name:'Shilajit Gold',note:'after dinner'},
+        {id:'melato',name:'Melato-T',note:'bedtime · for sleep'},
+        {id:'zolfresh',name:'Zolfresh',note:'only a rough night + doctor okay',optional:true} ]} };
+
+  var SKIN={ am:{ title:'☀️ Morning', sub:'', items:[
+        {id:'sk_wash_am',name:'Actame Face Wash'},
+        {id:'sk_plumserum',name:'Plum Rice Water + Niacinamide 10% Serum'},
+        {id:'sk_truderma',name:'TruDerma Radiance Serum'},
+        {id:'sk_plumgel',name:'Plum Gel Cream'},
+        {id:'sk_sun',name:'SeekCaus Sunscreen SPF50'},
+        {id:'sk_rozglo',name:'Rozglo Affy (effervescent)'} ]},
+    pm:{ title:'🌙 Night', sub:'', items:[
+        {id:'sk_wash_pm',name:'Actame Face Wash'},
+        {id:'sk_hairserum',name:'WishCare Hair Growth Serum'},
+        {id:'sk_hairoil',name:'Hair oil — Onion / Rosemary'},
+        {id:'sk_melaglow',name:'Melaglow Rich'},
+        {id:'sk_darkpatch',name:'ThriveCo Dark Patches Corrector'},
+        {id:'sk_facemoist',name:'Facemoist Cream'} ]} };
+
+  var IMPLANT_PATH=['Full-mouth rehab','Pterygoid','Zygomatic','Digital workflow & prosthetics'];
+  var IMPLANT_PROMPTS=[
+    'Dr. K A Reddy posts a zygoma case every day — go study today\u2019s one.',
+    'Practice a zygomatic approach — even 20 minutes on a model counts.',
+    'Message Dr. Jatin one real question about your next case.',
+    'Plan your next implant case end to end — workup to prosthesis.',
+    'Did you follow Dr. Reddy today? Watch his latest case and note one thing.',
+    'Review a full-mouth rehab the way Dr. Reddy does daily.',
+    'Sketch the prosthetic workflow for a full-arch case.',
+    'Discuss a surgery with Dr. Jatin or a trusted peer.',
+    'Study one pterygoid placement — angle, anchorage, pitfalls.',
+    'Read one implant article and save the single key takeaway.'];
+  var IMPLANT_NORTHSTAR=[
+    'Dr. Reddy started full-mouth implantology around the age you are now. At 52 he does a full-arch case every single day — that road is open to you too.',
+    'Crores follow mastery, not the other way round. Build the skill case by case; the rest comes.',
+    'One zygoma case studied a day. In a year you\u2019ll read cases the way Dr. Reddy does.',
+    'Becoming the implant name in Central India is a thousand small reps. Do today\u2019s rep.',
+    'Dr. Reddy and Dr. Jatin walked this path — same hands, same hours, same focus. You can stand where they stand.'];
+
+  function dayState(key){ var st=load(key,{date:'',done:{}}); if(st.date!==dayKey()){ st={date:dayKey(),done:{}}; save(key,st);} return st; }
+  function toggle(key,id){ var st=dayState(key); st.done[id]=!st.done[id]; save(key,st); renderAll(); }
+  function checklist(key,groups){
+    var st=dayState(key), html='';
+    for(var g=0;g<groups.length;g++){ var grp=groups[g];
+      html+='<div class="sl-grp"><div class="sl-grp-h">'+esc(grp.title)+(grp.sub?' <span class="sl-grp-sub">'+esc(grp.sub)+'</span>':'')+'</div>';
+      for(var i=0;i<grp.items.length;i++){ var it=grp.items[i], on=!!st.done[it.id];
+        html+='<div class="sl-row'+(on?' on':'')+(it.optional?' opt':'')+'" data-sl-toggle data-key="'+key+'" data-id="'+it.id+'">'
+            +'<span class="sl-box">'+(on?'✓':'')+'</span>'
+            +'<span class="sl-txt"><span class="sl-name">'+esc(it.name)+'</span>'+(it.note?'<span class="sl-note">'+esc(it.note)+'</span>':'')+'</span></div>'; }
+      html+='</div>'; }
+    return html;
+  }
+
+  // ---- Vitamin D protocol: 3 daily loading doses, then weekly x12 ----
+  var VITD_DUE=[0,1,2]; for(var _k=1;_k<=12;_k++){ VITD_DUE.push(2+7*_k); }
+  function vitdState(){ return load(VITD_KEY,{started:false,startDate:'',taken:{}}); }
+  function vitdAction(a){
+    var st=vitdState();
+    if(a==='start'){ st.started=true; st.startDate=dayKey(); st.taken={}; }
+    else if(a==='take'){ st.taken[dayKey()]=!st.taken[dayKey()]; }
+    else if(a==='reset'){ st={started:false,startDate:'',taken:{}}; }
+    save(VITD_KEY,st); renderAll();
+  }
+  function vitdSection(){
+    var st=vitdState();
+    if(!st.started){
+      return '<div class="sl-vitd"><div class="sl-vitd-line"><span class="sl-vitd-name">Vitamin D (Aprize D3)</span>'
+        +'<span class="sl-vitd-status">not started</span></div>'
+        +'<button class="sl-vitd-btn" data-sl-vitd="start">Start the course today</button>'
+        +'<div class="sl-vitd-hint">3 days in a row, then once a week for 12 weeks. Only shows up on dose days.</div></div>';
+    }
+    var dfs=daysBetween(st.startDate,dayKey()); if(dfs<0) dfs=0;
+    var isDue=VITD_DUE.indexOf(dfs)>=0, done=!!st.taken[dayKey()], sub;
+    if(dfs<=2){ sub='loading dose '+(dfs+1)+' of 3 · today'; } else { sub='weekly dose '+((dfs-2)/7)+' of 12 · today'; }
+    if(isDue){
+      return '<div class="sl-vitd"><div class="sl-row'+(done?' on':'')+'" data-sl-vitd="take">'
+        +'<span class="sl-box">'+(done?'✓':'')+'</span>'
+        +'<span class="sl-txt"><span class="sl-name">Vitamin D (Aprize D3)</span><span class="sl-note">'+sub+'</span></span></div></div>';
+    }
+    var next=null; for(var i=0;i<VITD_DUE.length;i++){ if(VITD_DUE[i]>dfs){ next=VITD_DUE[i]; break; } }
+    if(next===null){
+      return '<div class="sl-vitd"><div class="sl-vitd-line"><span class="sl-vitd-name">Vitamin D — course complete 🎉</span>'
+        +'<button class="sl-vitd-mini" data-sl-vitd="reset">restart</button></div></div>';
+    }
+    return '<div class="sl-vitd"><div class="sl-vitd-line"><span class="sl-vitd-name">Vitamin D</span>'
+      +'<span class="sl-vitd-status">next dose '+esc(addDays(st.startDate,next))+'</span>'
+      +'<button class="sl-vitd-mini" data-sl-vitd="reset">reset</button></div></div>';
+  }
+
+  function sectionMeds(){ return '<div class="sl-card"><div class="sl-h">💊 Medicines</div>'+checklist(MED_KEY,[MEDS.morning,MEDS.night])
+      +'<div class="sl-grp"><div class="sl-grp-h">☀️ Vitamin D</div>'+vitdSection()+'</div></div>'; }
+  function sectionSkin(){ return '<div class="sl-card"><div class="sl-h">🧴 Skin &amp; hair</div>'+checklist(SKIN_KEY,[SKIN.am,SKIN.pm])+'</div>'; }
+
+  function recoveryState(){ var st=load(REC_KEY,{date:'',level:null}); if(st.date!==dayKey()){ st={date:dayKey(),level:null}; save(REC_KEY,st);} return st; }
+  function setRecovery(lvl){ var st=recoveryState(); st.level=(lvl==='reset'?null:lvl); save(REC_KEY,st); renderAll(); }
+  // ---- WHOOP + Strava live data (auto-fills the charge card; manual is the fallback) ----
+  var SL_SECRET='4mzC-b7filnHLSRcIuztscn3m8UZE3Sg';
+  var liveData={whoop:null,strava:null}, liveTs=0;
+  function fetchLive(force){
+    if(!force && (Date.now()-liveTs)<120000) return;
+    liveTs=Date.now();
+    try{
+      var s=encodeURIComponent(SL_SECRET);
+      fetch('/api/whoop-recovery?secret='+s).then(function(r){return r.ok?r.json():null;}).then(function(d){ if(d&&d.connected){ liveData.whoop=d; renderAll(); } }).catch(function(){});
+      fetch('/api/strava-sync?secret='+s).then(function(r){return r.ok?r.json():null;}).then(function(d){ if(d&&d.connected){ liveData.strava=d; renderAll(); } }).catch(function(){});
+    }catch(e){}
+  }
+  function recColor(n){ return n>=67?'green':(n>=34?'amber':'red'); }
+  function recMsg(lvl){ return { green:{t:'You\u2019re charged.',b:'Today\u2019s the day — full 2-hour implant block, plan a mock surgery, push the walk.'},
+              amber:{t:'Steady.',b:'Keep the study hour, moderate walk. Consistent beats heroic — don\u2019t overreach.'},
+              red:{t:'Run light.',b:'Protect the study hour but keep it gentle, ease off the walk, clinic first. Tomorrow you push.'} }[lvl]; }
+  function stravaLine(){
+    var sd=liveData.strava;
+    if(!sd||!sd.connected||typeof sd.km!=='number') return '';
+    return '<div class="sl-strava">🚶 Today: '+sd.km+' km'+(sd.activities?(' · '+sd.activities+(sd.activities>1?' activities':' activity')):'')+' <span class="sl-strava-tag">Strava</span></div>';
+  }
+  function sectionRecovery(){
+    var w=liveData.whoop;
+    var head='<div class="sl-card"><div class="sl-h">⚡ Today\u2019s charge <span class="sl-hint">'+((w&&typeof w.recovery==='number')?'live from WHOOP':'auto-fills when WHOOP is connected')+'</span></div>';
+    var foot=stravaLine();
+    if(w&&typeof w.recovery==='number'){
+      var lvl=recColor(w.recovery), m=recMsg(lvl);
+      var sub=(w.hrv?('HRV '+w.hrv+' ms'):'')+((w.hrv&&w.rhr)?' · ':'')+(w.rhr?('RHR '+w.rhr):'');
+      return head+'<div class="sl-rec-result '+lvl+'"><div class="sl-rec-score">'+w.recovery+'%</div><div class="sl-rec-t">'+m.t+'</div><div class="sl-rec-b">'+m.b+'</div>'+(sub?'<div class="sl-rec-sub">'+esc(sub)+'</div>':'')+'</div>'+foot+'</div>';
+    }
+    var st=recoveryState();
+    if(!st.level){
+      return head+'<div class="sl-rec-q">How recovered are you this morning?</div><div class="sl-rec-btns">'
+        +'<button class="sl-rec-btn green" data-sl-recovery="green">🟢 Green</button>'
+        +'<button class="sl-rec-btn amber" data-sl-recovery="amber">🟡 Amber</button>'
+        +'<button class="sl-rec-btn red" data-sl-recovery="red">🔴 Red</button></div>'+foot+'</div>';
+    }
+    var m2=recMsg(st.level);
+    return head+'<div class="sl-rec-result '+st.level+'"><div class="sl-rec-t">'+m2.t+'</div><div class="sl-rec-b">'+m2.b+'</div></div>'
+      +'<div class="sl-rec-change" data-sl-recovery="reset">change</div>'+foot+'</div>';
+  }
+
+  function impState(){ var st=load(IMP_KEY,{stage:0,date:'',doneToday:false}); if(st.date!==dayKey()){ st.date=dayKey(); st.doneToday=false; save(IMP_KEY,st);} return st; }
+  function impAction(a){ var st=impState(); if(a==='done'){ st.doneToday=!st.doneToday; } else if(a==='advance'){ st.stage=Math.min(IMPLANT_PATH.length-1,(st.stage||0)+1); } save(IMP_KEY,st); renderAll(); }
+  function sectionImplant(){
+    var st=impState(), path='';
+    for(var i=0;i<IMPLANT_PATH.length;i++){ path+='<span class="sl-stage'+(i<st.stage?' done':(i===st.stage?' cur':''))+'">'+esc(IMPLANT_PATH[i])+'</span>'; }
+    return '<div class="sl-card"><div class="sl-h">🦷 Implant journey <span class="sl-hint">toward the implant name in Central India</span></div>'
+      +'<div class="sl-path">'+path+'</div>'
+      +'<div class="sl-northstar">'+esc(pickDaily(IMPLANT_NORTHSTAR))+'</div>'
+      +'<div class="sl-imp-today"><span class="sl-imp-label">Today</span>'+esc(pickDaily(IMPLANT_PROMPTS))+'</div>'
+      +'<button class="sl-imp-done'+(st.doneToday?' on':'')+'" data-sl-imp="done">'+(st.doneToday?'✓ Done today':'Mark done')+'</button> '
+      +'<button class="sl-imp-adv" data-sl-imp="advance">stage \u25B8</button></div>';
+  }
+
+  function renderAll(){ var el=document.getElementById('saumyaLife'); if(!el) return;
+    try{ el.innerHTML=sectionRecovery()+sectionMeds()+sectionImplant()+sectionSkin(); }catch(e){} }
+
+  document.addEventListener('click',function(e){
+    if(!e.target||!e.target.closest) return; var x;
+    if((x=e.target.closest('[data-sl-toggle]'))){ toggle(x.getAttribute('data-key'),x.getAttribute('data-id')); }
+    else if((x=e.target.closest('[data-sl-recovery]'))){ setRecovery(x.getAttribute('data-sl-recovery')); }
+    else if((x=e.target.closest('[data-sl-imp]'))){ impAction(x.getAttribute('data-sl-imp')); }
+    else if((x=e.target.closest('[data-sl-vitd]'))){ vitdAction(x.getAttribute('data-sl-vitd')); }
+  });
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden){ renderAll(); fetchLive(); } });
+  if(document.readyState!=='loading'){ renderAll(); fetchLive(true); } else document.addEventListener('DOMContentLoaded',function(){ renderAll(); fetchLive(true); });
+  window.SaumyaLife={render:renderAll,toggle:toggle,setRecovery:setRecovery,impAction:impAction,vitdAction:vitdAction};
+})();
 
 </script>
 </body>

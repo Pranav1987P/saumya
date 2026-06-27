@@ -11,3 +11,23 @@
   from = "/api/get-events"
   to = "/.netlify/functions/get-events"
   status = 200
+
+[[redirects]]
+  from = "/api/whoop-callback"
+  to = "/.netlify/functions/whoop-callback"
+  status = 200
+
+[[redirects]]
+  from = "/api/whoop-recovery"
+  to = "/.netlify/functions/whoop-recovery"
+  status = 200
+
+[[redirects]]
+  from = "/api/strava-callback"
+  to = "/.netlify/functions/strava-callback"
+  status = 200
+
+[[redirects]]
+  from = "/api/strava-sync"
+  to = "/.netlify/functions/strava-sync"
+  status = 200
