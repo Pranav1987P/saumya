@@ -108,16 +108,28 @@ export default async (req) => {
     const cs = (cyc && cyc.score) || {};
     const ss = (slp && slp.score) || {};
 
-    // Sleep hours = actual time asleep (light + deep/SWS + REM), excluding awake time.
+    // Sleep stages (milliseconds -> minutes). Asleep = light + deep/SWS + REM.
     const stg = ss.stage_summary || {};
+    const toMin = (ms) => (num(ms) === null ? null : Math.round(ms / 60000));
+    const lightMs = num(stg.total_light_sleep_time_milli);
+    const deepMs = num(stg.total_slow_wave_sleep_time_milli);
+    const remMs = num(stg.total_rem_sleep_time_milli);
     let sleepHrs = null;
-    const light = num(stg.total_light_sleep_time_milli);
-    const deep = num(stg.total_slow_wave_sleep_time_milli);
-    const rem = num(stg.total_rem_sleep_time_milli);
-    if (light !== null || deep !== null || rem !== null) {
-      const asleepMs = (light || 0) + (deep || 0) + (rem || 0);
+    if (lightMs !== null || deepMs !== null || remMs !== null) {
+      const asleepMs = (lightMs || 0) + (deepMs || 0) + (remMs || 0);
       if (asleepMs > 0) sleepHrs = Math.round((asleepMs / 3600000) * 100) / 100;
     }
+
+    // Sleep need + debt (milliseconds -> minutes)
+    const need = ss.sleep_needed || {};
+    const needMin = (num(need.baseline_milli) !== null)
+      ? toMin((need.baseline_milli || 0) + (need.need_from_sleep_debt_milli || 0)
+            + (need.need_from_recent_strain_milli || 0) + (need.need_from_recent_nap_milli || 0))
+      : null;
+
+    // Calories: WHOOP gives kilojoules on the cycle. kcal = kJ / 4.184
+    const kj = num(cs.kilojoule);
+    const calories = (kj === null) ? null : Math.round(kj / 4.184);
 
     return json({
       ok: true,
@@ -128,11 +140,24 @@ export default async (req) => {
       rhr: roundN(rs.resting_heart_rate),
       spo2: round1(rs.spo2_percentage),
       skinTemp: round1(rs.skin_temp_celsius),
-      // strain (today's physiological cycle, 0-21)
+      // strain + energy (today's physiological cycle)
       strain: round1(cs.strain),
+      avgHr: roundN(cs.average_heart_rate),
+      calories: calories,
       // sleep (last night)
-      sleepHrs: sleepHrs,
+      sleepStart: (slp && slp.start) || null,   // ISO — when sleep began
+      sleepEnd: (slp && slp.end) || null,       // ISO — when sleep ended
+      sleepHrs: sleepHrs,                        // hours actually asleep
+      timeInBedMin: toMin(stg.total_in_bed_time_milli),
+      awakeMin: toMin(stg.total_awake_time_milli),
+      lightMin: toMin(lightMs),
+      deepMin: toMin(deepMs),
+      remMin: toMin(remMs),
+      sleepNeedMin: needMin,
+      sleepDebtMin: toMin(need.need_from_sleep_debt_milli),
       sleepPerf: roundN(ss.sleep_performance_percentage),
+      sleepEff: roundN(ss.sleep_efficiency_percentage),
+      sleepConsistency: roundN(ss.sleep_consistency_percentage),
       respRate: round1(ss.respiratory_rate),
       // meta
       state: (rec && rec.score_state) || null,

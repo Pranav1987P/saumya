@@ -23,6 +23,15 @@ function istStartOfTodayEpochSec(now) {
   return Math.floor(istMidnightUtcMs / 1000);
 }
 
+// Midnight IST on Monday of the current week, as a UTC epoch in seconds.
+function istStartOfWeekEpochSec(now) {
+  const ist = new Date(now + IST_OFFSET_MS);
+  const y = ist.getUTCFullYear(), m = ist.getUTCMonth(), d = ist.getUTCDate();
+  const daysSinceMon = (ist.getUTCDay() + 6) % 7; // Mon=0 ... Sun=6
+  const istMondayUtcMs = Date.UTC(y, m, d, 0, 0, 0) - IST_OFFSET_MS - daysSinceMon * 86400000;
+  return Math.floor(istMondayUtcMs / 1000);
+}
+
 async function refresh(store, tok, clientId, clientSecret) {
   const body = new URLSearchParams({
     client_id: clientId,
@@ -66,8 +75,9 @@ export default async (req) => {
       tok = await refresh(store, tok, clientId, clientSecret);
     }
     const now = Date.now();
-    const after = istStartOfTodayEpochSec(now);
-    const fetchActs = (t) => fetch(`${ACT_URL}?after=${after}&per_page=50`, { headers: { Authorization: `Bearer ${t}` } });
+    const startWeek = istStartOfWeekEpochSec(now);
+    const startToday = istStartOfTodayEpochSec(now);
+    const fetchActs = (t) => fetch(`${ACT_URL}?after=${startWeek}&per_page=100`, { headers: { Authorization: `Bearer ${t}` } });
 
     let resp = await fetchActs(tok.access_token);
     if (resp.status === 401) {
@@ -77,18 +87,25 @@ export default async (req) => {
     if (!resp.ok) return json({ ok: false, connected: true, error: `activities ${resp.status}` });
 
     const acts = await resp.json();
-    let meters = 0, count = 0, walkMeters = 0;
+    let meters = 0, count = 0, walkMeters = 0, movingSec = 0, weekMeters = 0;
     for (const a of (Array.isArray(acts) ? acts : [])) {
       const dist = Number(a.distance) || 0;
-      meters += dist;
-      count++;
-      if (a.type === "Walk" || a.sport_type === "Walk") walkMeters += dist;
+      weekMeters += dist; // everything from Monday onward
+      const aEpoch = Math.floor(new Date(a.start_date).getTime() / 1000);
+      if (aEpoch >= startToday) {
+        meters += dist;
+        movingSec += Number(a.moving_time) || 0;   // seconds spent moving today
+        count++;
+        if (a.type === "Walk" || a.sport_type === "Walk") walkMeters += dist;
+      }
     }
     return json({
       ok: true,
       connected: true,
       km: Math.round(meters / 100) / 10,        // total km today, 1 decimal
       walkKm: Math.round(walkMeters / 100) / 10,
+      weekKm: Math.round(weekMeters / 100) / 10, // total km this week (Mon-start IST)
+      min: Math.round(movingSec / 60),          // total active minutes today
       activities: count,
       at: now
     });
