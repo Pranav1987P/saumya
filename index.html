@@ -4823,6 +4823,18 @@ body.app-c-active .app-b { display: none !important; }
     <div class="header-meta" id="headerMeta">🌅 — · ◌ AQI —</div>
   </header>
 
+  <!-- 4:44 Life toggle — surfaced above the tab selector as a daily motivator -->
+  <div id="life445Toggle" class="life445-silver" style="
+      width:100%; margin:0 0 14px; padding:14px 16px; border-radius:14px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      color:var(--text); font-family:inherit; text-align:left;">
+    <span style="display:flex; flex-direction:column; line-height:1.25; position:relative; z-index:1;">
+      <span id="life445Title" style="font-size:16px; font-weight:800; color:#5b21b6; letter-spacing:0.2px; text-shadow:0 1px 0 rgba(255,255,255,0.55);">The 4:44 Life</span>
+      <span id="life445Sub" style="font-size:11.5px; color:#4a5568;"></span>
+    </span>
+    <span id="life445Pill" style="flex-shrink:0; position:relative; z-index:1; font-size:12px; font-weight:800; padding:6px 13px; border-radius:999px;"></span>
+  </div>
+
   <!-- App switcher (Personal / Clinic) -->
   <div class="app-switcher" id="appSwitcher">
     <button class="app-tab active" data-app="A" id="appTabA">
@@ -5577,17 +5589,6 @@ body.app-c-active .app-b { display: none !important; }
       <div class="anniv-title" id="annivTitle">32 Pearls anniversary</div>
       <div class="anniv-sub" id="annivSub">Inaugurated 7 June 2019</div>
     </div>
-  </div>
-
-  <div id="life445Toggle" class="life445-silver" style="
-      width:100%; margin:0 0 14px; padding:14px 16px; border-radius:14px;
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      color:var(--text); font-family:inherit; text-align:left;">
-    <span style="display:flex; flex-direction:column; line-height:1.25; position:relative; z-index:1;">
-      <span id="life445Title" style="font-size:16px; font-weight:800; color:#5b21b6; letter-spacing:0.2px; text-shadow:0 1px 0 rgba(255,255,255,0.55);">The 4:44 Life</span>
-      <span id="life445Sub" style="font-size:11.5px; color:#4a5568;"></span>
-    </span>
-    <span id="life445Pill" style="flex-shrink:0; position:relative; z-index:1; font-size:12px; font-weight:800; padding:6px 13px; border-radius:999px;"></span>
   </div>
 
   <div class="sections" id="sections"></div>
@@ -14400,7 +14401,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v8.56 · 2-Jul";
+const SAUMYA_BUILD = "v8.57 · 2-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
