@@ -7061,7 +7061,13 @@ function loadState() {
   }
 }
 
+// Set true by a deliberate user delete so saveState allows an empty result
+// through instead of mistaking it for a data wipe and restoring from storage.
+let bPendingDeleteIntent = false;
+
 function saveState() {
+  const deleteToEmptyIntended = bPendingDeleteIntent;
+  bPendingDeleteIntent = false;
   try {
     // CRITICAL: before saving, check if localStorage has MORE recent App B data
     // than what's in memory. This protects against tab-race where a stale tab
@@ -7083,8 +7089,9 @@ function saveState() {
             (existing.appB.cases && existing.appB.cases.length > 0) ||
             (existing.appB.staff && existing.appB.staff.length > 0)
           );
-          if (inMemoryEmpty && storedHasData) {
-            // Defensive: someone wiped our appB; restore from storage before saving
+          if (inMemoryEmpty && storedHasData && !deleteToEmptyIntended) {
+            // Defensive: someone wiped our appB; restore from storage before saving.
+            // (Skipped when the user deliberately deleted the last item.)
             console.warn('[Saumya] saveState: in-memory appB empty but storage has data — restoring before save');
             state.appB = existing.appB;
           }
@@ -11913,6 +11920,7 @@ function bTogglePendingDone(id) {
 function bDeletePending(id) {
   ensureAppB();
   state.appB.pending = state.appB.pending.filter(x => x.id !== id);
+  bPendingDeleteIntent = true; // allow deleting the last item without the anti-wipe guard reverting it
   bSave();
   renderPendingList();
 }
@@ -14392,7 +14400,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v8.55 · 2-Jul";
+const SAUMYA_BUILD = "v8.56 · 2-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
