@@ -4005,6 +4005,10 @@ body.app-c-active .app-b { display: none !important; }
   color: var(--text);
   line-height: 1.35;
   word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .b-pending-del {
   background: transparent;
@@ -11842,6 +11846,9 @@ function bGuessBucket(text) {
 
 function bMigrateUncategorized() {
   ensureAppB();
+  // One-time cleanup: drop any "Legend: …" line accidentally pasted in as a task.
+  const before = state.appB.pending.length;
+  state.appB.pending = state.appB.pending.filter(p => !/^\s*legend\b/i.test(p.text || ''));
   let migrated = 0;
   for (const p of state.appB.pending) {
     // Re-guess anything not on the current 4-bucket system (old clinic/ops/patients/me, quick/build/watch, or missing).
@@ -11850,7 +11857,7 @@ function bMigrateUncategorized() {
       migrated++;
     }
   }
-  if (migrated > 0) bSave();
+  if (migrated > 0 || state.appB.pending.length !== before) bSave();
   return migrated;
 }
 
@@ -11926,8 +11933,27 @@ function bAddPatient(text) {
 // until you tap "Add all", so you can fix or remove any line first.
 function bParseBulk(text) {
   return (text || '').split(/\r?\n/)
-    .map(s => s.replace(/^\s*(?:\d+[.)]\s+|[-\u2022*]\s+)/, '').trim()) // strip "1. ", "- ", "• "
-    .filter(Boolean);
+    .map(s => s
+      .replace(/^\s*(?:\d+[.)]\s+|[-\u2022*]\s+)/, '')       // strip "1. ", "- ", "• "
+      .replace(/^[\s\u2605\u2606\u2729\u2730\u2b50]+/, '')   // strip leading rating stars ★☆✩✰⭐
+      .trim())
+    .filter(s => s
+      && !/^legend\b/i.test(s)                                // drop a pasted "Legend: …" line
+      && !/~~/.test(s)                                        // drop struck-through (done & cleared) lines
+      && !/^[\s\u2605\u2606\u2729\u2730\u2b50\u00b7\u2014\u2013|:-]+$/.test(s)); // drop symbol-only separators
+}
+// Shorten a task to a short, glanceable headline: strip rating stars, drop the
+// status note after the first dash/semicolon, drop trailing priority parentheticals,
+// and cap the length. Full text is kept in storage; this is display-only.
+function bShorten(text) {
+  let t = (text || '').trim();
+  t = t.replace(/^[\s\u2605\u2606\u2729\u2730\u2b50]+/, '');                 // leading rating stars
+  t = t.replace(/^\s*(?:\d+[.)]\s+|[-\u2022*]\s+)/, '');                      // leading number/bullet
+  t = t.replace(/\s*\([^)]*(?:priority|ongoing|slow|lowest|highest|hold)[^)]*\)\s*$/i, ''); // trailing status paren
+  const head = t.split(/\s+[\u2014\u2013]\s+|\s+-\s+|[;\u00b7]/)[0];          // head before em/en/hyphen dash, ; or ·
+  t = (head || t).trim();
+  if (t.length > 60) t = t.slice(0, 58).trim() + '\u2026';
+  return t || (text || '').trim();
 }
 function bBulkCount() {
   const box = $('bPatientBulk'); if (!box) return;
@@ -12224,7 +12250,7 @@ function renderPendingList() {
     return `
       <div class="b-pending-item b-pl-${p.bucket} ${p.doneAt ? 'done' : ''} ${p.starred ? 'starred' : ''}" data-id="${p.id}">
         <span class="b-pending-check" data-action="toggle">${p.doneAt ? '\u2713' : ''}</span>
-        <span class="b-pending-text" data-action="toggle">${escapeHtml(p.text)}<span class="b-pending-meta"> \u00b7 ${stamp}${p.editedAt ? ' \u00b7 edited' : ''}</span></span>
+        <span class="b-pending-text" data-action="toggle">${escapeHtml(bShorten(p.text))}<span class="b-pending-meta"> \u00b7 ${stamp}${p.editedAt ? ' \u00b7 edited' : ''}</span></span>
         <button class="b-pending-star" data-action="star" data-id="${p.id}" title="${p.starred ? 'Unstar' : 'Star \u2014 make it matter more'}">${p.starred ? '\u2605' : '\u2606'}</button>
         <button class="b-pending-edit-btn" data-action="edit" data-id="${p.id}" title="Edit">\u270e</button>
         <button class="b-pending-del" data-action="del" data-id="${p.id}" title="Delete">\u2715</button>
@@ -12522,7 +12548,7 @@ function wireAppB() {
       const lines = bParseBulk(txt);
       if (lines.length >= 2) { // a real list — auto-sort and stage for review
         e.preventDefault();
-        bPendingBulkItems = lines.map(n => ({ text: n, bucket: bGuessBucket(n) }));
+        bPendingBulkItems = lines.map(n => ({ text: bShorten(n), bucket: bGuessBucket(n) }));
         renderPendingBulk();
         pendingInput.value = '';
       }
@@ -14366,7 +14392,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v8.54 · 2-Jul";
+const SAUMYA_BUILD = "v8.55 · 2-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
