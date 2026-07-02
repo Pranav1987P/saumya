@@ -63,14 +63,43 @@ async function latest(accessToken, paths) {
   return null;
 }
 
-async function pullAll(accessToken) {
-  const [rec, cyc, slp] = await Promise.all([
-    latest(accessToken, ["/v2/recovery?limit=1", "/v1/recovery?limit=1"]),
-    latest(accessToken, ["/v2/cycle?limit=1", "/v1/cycle?limit=1"]),
-    latest(accessToken, ["/v2/activity/sleep?limit=1", "/v1/activity/sleep?limit=1"])
-  ]);
-  return { rec, cyc, slp };
+// A page of records (newest first) from a WHOOP collection. Same v2->v1 fallback
+// as latest(). Returns [] when unavailable so the derived signals just go null.
+async function series(accessToken, bases, limit) {
+  for (const base of bases) {
+    const sep = base.includes("?") ? "&" : "?";
+    const resp = await fetch(API + base + sep + "limit=" + limit, { headers: { Authorization: `Bearer ${accessToken}` } });
+    if (resp.status === 200) { const d = await resp.json(); return (d && d.records) || []; }
+    if (resp.status === 401) throw new Error("unauthorized");
+    // 403/404/429/400: try next path, then give up gracefully
+  }
+  return [];
 }
+
+// ~25 days is enough for a 4-day trend and a stable ~3-week baseline, and it's a
+// single page (WHOOP caps limit at 25), so this stays 3 API calls like before.
+const HIST = 25;
+
+async function pullAll(accessToken) {
+  let [recArr, cyc, slpArr] = await Promise.all([
+    series(accessToken, ["/v2/recovery", "/v1/recovery"], HIST),
+    latest(accessToken, ["/v2/cycle?limit=1", "/v1/cycle?limit=1"]),
+    series(accessToken, ["/v2/activity/sleep", "/v1/activity/sleep"], HIST)
+  ]);
+  // If a history page came back empty, never regress below the old single-record
+  // behaviour — fall back to one latest record so today's readout still shows.
+  if (!recArr.length) { const r = await latest(accessToken, ["/v2/recovery?limit=1", "/v1/recovery?limit=1"]); if (r) recArr = [r]; }
+  if (!slpArr.length) { const s = await latest(accessToken, ["/v2/activity/sleep?limit=1", "/v1/activity/sleep?limit=1"]); if (s) slpArr = [s]; }
+  return { recArr, cyc, slpArr };
+}
+
+function median(a) {
+  if (!a.length) return null;
+  const b = a.slice().sort((x, y) => x - y);
+  const m = Math.floor(b.length / 2);
+  return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2;
+}
+function parseTime(x) { const t = Date.parse(x); return isFinite(t) ? t : 0; }
 
 export default async (req) => {
   const SECRET = process.env.SAUMYA_SECRET;
@@ -103,7 +132,49 @@ export default async (req) => {
       }
     }
 
-    const rec = data.rec, cyc = data.cyc, slp = data.slp;
+    const recArr = data.recArr || [];
+    const slpArr = data.slpArr || [];
+    const cyc = data.cyc;
+
+    // Recovery history: scored records only, newest first.
+    const recScored = recArr
+      .filter(r => r && r.score_state === "SCORED" && r.score)
+      .sort((a, b) => parseTime(b.updated_at || b.created_at) - parseTime(a.updated_at || a.created_at));
+    const rec = recScored[0] || recArr[0] || null;
+    const scores = recScored.map(r => num(r.score.recovery_score)).filter(v => v !== null);
+    const hrvs = recScored.map(r => num(r.score.hrv_rmssd_milli)).filter(v => v !== null);
+
+    // Sleep history: night sleeps only (naps excluded), newest first.
+    const nights = slpArr
+      .filter(s => s && s.nap !== true)
+      .sort((a, b) => parseTime(b.end || b.start) - parseTime(a.end || a.start));
+    const slp = nights[0] || slpArr[0] || null;
+    const resps = nights.map(s => num(s.score && s.score.respiratory_rate)).filter(v => v !== null);
+
+    // --- Derived deductions (only when there's enough history to be honest) ---
+    // Recovery trend: last up-to-4 scores, oldest -> newest, plus a direction.
+    let recoveryTrend = null, recoveryDir = null;
+    if (scores.length >= 3) {
+      const last4 = scores.slice(0, 4).reverse();
+      recoveryTrend = last4.map(roundN);
+      const n = last4.length;
+      const recent = (last4[n - 1] + last4[n - 2]) / 2;
+      const prior = (last4[0] + last4[1]) / 2;
+      recoveryDir = recent <= prior - 8 ? "falling" : (recent >= prior + 8 ? "rising" : "steady");
+    }
+    // HRV vs personal baseline (median of prior scored days; need >=5 prior + today).
+    let hrvBaseline = null, hrvDelta = null;
+    if (hrvs.length >= 6) {
+      const base = median(hrvs.slice(1));
+      if (base !== null) { hrvBaseline = roundN(base); hrvDelta = roundN(hrvs[0] - base); }
+    }
+    // Respiratory-rate tripwire: today vs prior-night baseline (need >=5 prior + today).
+    let respBaseline = null, respDelta = null, respFlag = null;
+    if (resps.length >= 6) {
+      const base = median(resps.slice(1));
+      if (base !== null) { respBaseline = round1(base); respDelta = round1(resps[0] - base); respFlag = (resps[0] - base) >= 1.0; }
+    }
+
     const rs = (rec && rec.score) || {};
     const cs = (cyc && cyc.score) || {};
     const ss = (slp && slp.score) || {};
@@ -159,6 +230,14 @@ export default async (req) => {
       sleepEff: roundN(ss.sleep_efficiency_percentage),
       sleepConsistency: roundN(ss.sleep_consistency_percentage),
       respRate: round1(ss.respiratory_rate),
+      // derived deductions (null until ~a week of history exists)
+      recoveryTrend: recoveryTrend,
+      recoveryDir: recoveryDir,
+      hrvBaseline: hrvBaseline,
+      hrvDelta: hrvDelta,
+      respBaseline: respBaseline,
+      respDelta: respDelta,
+      respFlag: respFlag,
       // meta
       state: (rec && rec.score_state) || null,
       at: (rec && rec.created_at) || null
