@@ -3872,6 +3872,15 @@ body.app-c-active .app-b { display: none !important; }
   align-items: center;
   margin-bottom: 12px;
 }
+.b-bulk { margin: 0 0 12px; padding: 12px; border: 1px dashed rgba(45,212,191,.35); border-radius: 12px; background: rgba(45,212,191,.04); }
+.b-bulk-head { font-size: 12.5px; color: var(--teal); font-weight: 700; margin-bottom: 9px; }
+.b-bulk-row { display: grid; grid-template-columns: 1fr 30px; gap: 6px; align-items: center; margin-bottom: 6px; }
+.b-bulk-input { background: rgba(255,255,255,.05); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; color: var(--text); font-family: inherit; font-size: 13.5px; }
+.b-bulk-input:focus { border-color: rgba(45,212,191,.5); outline: none; }
+.b-bulk-x { width: 30px; height: 30px; border-radius: 50%; background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); color: #fca5a5; font-size: 13px; cursor: pointer; line-height: 1; }
+.b-bulk-actions { display: flex; gap: 8px; margin-top: 11px; }
+.b-bulk-addall { flex: 1; background: var(--teal); color: #0a0f1e; border: none; border-radius: 8px; padding: 10px; font-weight: 700; font-size: 14px; cursor: pointer; }
+.b-bulk-cancel { background: rgba(255,255,255,.05); border: 1px solid var(--border); color: var(--text-faint); border-radius: 8px; padding: 10px 14px; font-size: 13px; cursor: pointer; }
 .b-pending-mic, .b-pending-add {
   width: 38px;
   height: 38px;
@@ -4845,10 +4854,12 @@ body.app-c-active .app-b { display: none !important; }
         <div class="b-pending-title">🦷 Patients to plan</div>
         <div class="b-pending-sub">Patients whose planning or work you owe.</div>
       </div>
-      <div class="b-pending-input-row" style="grid-template-columns: 1fr 42px;">
+      <div class="b-pending-input-row">
+        <button class="b-pending-mic" id="bPatientMic" aria-label="Record">🎙</button>
         <input type="text" class="b-pending-input" id="bPatientInput" placeholder="Patient + what's pending">
         <button class="b-pending-add" id="bPatientAdd">＋</button>
       </div>
+      <div class="b-bulk" id="bPatientBulk" style="display:none;"></div>
       <div class="b-pending-list" id="bPatientList"></div>
     </section>
 
@@ -11733,6 +11744,10 @@ function saveBilling() {
 // ============================================================
 let bSpeechRecognition = null;
 let bSpeechActive = false;
+// Which input/mic/sub the shared recogniser is currently driving (Pending or Patients).
+let bSpeechInputId = 'bPendingInput';
+let bSpeechMicId = 'bPendingMic';
+let bSpeechSubId = 'bPendingSub';
 
 // Pending buckets: 2 categories — Clinic tasks + Ops (admin/maintenance)
 const PENDING_BUCKETS = [
@@ -11873,6 +11888,50 @@ function bAddPatient(text) {
   bSave();
   const inp = $('bPatientInput'); if (inp) inp.value = '';
   renderPatientList();
+}
+// ===== v8: bulk paste — split a pasted list into reviewable rows =====
+// Paste many names at once; each becomes its own editable row. Nothing is added
+// until you tap "Add all", so you can fix or remove any line first.
+function bParseBulk(text) {
+  return (text || '').split(/\r?\n/)
+    .map(s => s.replace(/^\s*(?:\d+[.)]\s+|[-\u2022*]\s+)/, '').trim()) // strip "1. ", "- ", "• "
+    .filter(Boolean);
+}
+function bBulkCount() {
+  const box = $('bPatientBulk'); if (!box) return;
+  const n = box.querySelectorAll('.b-bulk-row').length;
+  const head = box.querySelector('.b-bulk-head');
+  if (head) head.textContent = n + (n === 1 ? ' name pasted — edit or remove, then add' : ' names pasted — edit or remove, then add all');
+}
+function renderPatientBulk(names) {
+  const box = $('bPatientBulk'); if (!box) return;
+  const clean = (names || []).filter(Boolean);
+  if (!clean.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  let h = '<div class="b-bulk-head"></div>';
+  h += clean.map(n => '<div class="b-bulk-row"><input class="b-bulk-input" value="' + escapeHtml(n) + '"><button class="b-bulk-x" aria-label="Remove">\u2715</button></div>').join('');
+  h += '<div class="b-bulk-actions"><button class="b-bulk-addall">\uFF0B Add all</button><button class="b-bulk-cancel">Clear</button></div>';
+  box.innerHTML = h;
+  box.style.display = 'block';
+  bBulkCount();
+}
+function wirePatientBulk() {
+  const box = $('bPatientBulk'); if (!box || box.dataset.wired) return;
+  box.dataset.wired = '1';
+  box.addEventListener('click', (e) => {
+    const t = e.target;
+    if (t.classList.contains('b-bulk-x')) {
+      const row = t.closest('.b-bulk-row'); if (row) row.remove();
+      if (!box.querySelectorAll('.b-bulk-row').length) { box.style.display = 'none'; box.innerHTML = ''; }
+      else bBulkCount();
+    } else if (t.classList.contains('b-bulk-addall')) {
+      const vals = Array.from(box.querySelectorAll('.b-bulk-input')).map(i => i.value.trim()).filter(Boolean);
+      for (let i = vals.length - 1; i >= 0; i--) bAddPatient(vals[i]); // reverse so first pasted lands on top
+      box.style.display = 'none'; box.innerHTML = '';
+      const pin = $('bPatientInput'); if (pin) pin.value = '';
+    } else if (t.classList.contains('b-bulk-cancel')) {
+      box.style.display = 'none'; box.innerHTML = '';
+    }
+  });
 }
 function bTogglePatient(id) {
   ensureAppB();
@@ -12112,8 +12171,13 @@ function initBSpeech() {
   return rec;
 }
 
-function bStartSpeech() {
+function bStartSpeech(inputId, micId, subId) {
+  // Toggle off whatever is currently recording first (uses the CURRENT target).
   if (bSpeechActive) { bStopSpeech(); return; }
+  // Point the shared recogniser at the requested field (defaults = Pending).
+  bSpeechInputId = inputId || 'bPendingInput';
+  bSpeechMicId = micId || 'bPendingMic';
+  bSpeechSubId = (subId === undefined ? 'bPendingSub' : subId);
   if (!bSpeechRecognition) {
     bSpeechRecognition = initBSpeech();
     if (!bSpeechRecognition) {
@@ -12126,22 +12190,23 @@ function bStartSpeech() {
         transcript += event.results[i][0].transcript;
       }
       // Append to current input value rather than overwrite (so partial dictations build up)
-      const input = $('bPendingInput');
+      const input = $(bSpeechInputId);
+      if (!input) return;
       const existing = input.dataset.preSpeech || '';
       input.value = (existing + ' ' + transcript).trim();
     };
     bSpeechRecognition.onend = () => {
       bSpeechActive = false;
-      const mic = $('bPendingMic');
+      const mic = $(bSpeechMicId);
       if (mic) mic.classList.remove('recording');
-      const sub = $('bPendingSub');
+      const sub = bSpeechSubId ? $(bSpeechSubId) : null;
       if (sub) sub.textContent = 'Tap mic to speak, or type';
     };
     bSpeechRecognition.onerror = (e) => {
       bSpeechActive = false;
-      const mic = $('bPendingMic');
+      const mic = $(bSpeechMicId);
       if (mic) mic.classList.remove('recording');
-      const sub = $('bPendingSub');
+      const sub = bSpeechSubId ? $(bSpeechSubId) : null;
       if (sub) {
         if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
           sub.textContent = 'Mic permission denied. Enable in browser settings.';
@@ -12154,13 +12219,15 @@ function bStartSpeech() {
     };
   }
   // Save current input so dictation can append
-  const input = $('bPendingInput');
-  input.dataset.preSpeech = input.value || '';
+  const input = $(bSpeechInputId);
+  if (input) input.dataset.preSpeech = input.value || '';
   try {
     bSpeechRecognition.start();
     bSpeechActive = true;
-    $('bPendingMic').classList.add('recording');
-    $('bPendingSub').textContent = 'Listening… speak now. Tap mic again to stop.';
+    const mic = $(bSpeechMicId);
+    if (mic) mic.classList.add('recording');
+    const sub = bSpeechSubId ? $(bSpeechSubId) : null;
+    if (sub) sub.textContent = 'Listening… speak now. Tap mic again to stop.';
   } catch (e) {
     // If already started somehow
     bSpeechActive = false;
@@ -12171,7 +12238,7 @@ function bStopSpeech() {
   if (!bSpeechRecognition) return;
   try { bSpeechRecognition.stop(); } catch (e) {}
   bSpeechActive = false;
-  const mic = $('bPendingMic');
+  const mic = $(bSpeechMicId);
   if (mic) mic.classList.remove('recording');
 }
 
@@ -12283,7 +12350,7 @@ function wireAppB() {
   // Pending things (voice/text)
   const pendingMic = document.getElementById('bPendingMic');
   if (pendingMic) {
-    pendingMic.onclick = bStartSpeech;
+    pendingMic.onclick = () => bStartSpeech('bPendingInput', 'bPendingMic', 'bPendingSub');
   }
   const pendingAdd = document.getElementById('bPendingAdd');
   if (pendingAdd) {
@@ -12323,6 +12390,21 @@ function wireAppB() {
   // Manual "I'm here" / "Leaving" buttons removed 2026-05-21 — full Tasker automation.
 
   // v8: Patients-to-plan add (button + Enter)
+  const ptMic = document.getElementById('bPatientMic');
+  if (ptMic) ptMic.onclick = () => bStartSpeech('bPatientInput', 'bPatientMic', null);
+  wirePatientBulk();
+  const ptPaste = document.getElementById('bPatientInput');
+  if (ptPaste) {
+    ptPaste.addEventListener('paste', (e) => {
+      const txt = ((e.clipboardData || window.clipboardData) || { getData: () => '' }).getData('text');
+      const names = bParseBulk(txt);
+      if (names.length >= 2) { // a real list — stage it for review instead of one blob
+        e.preventDefault();
+        renderPatientBulk(names);
+        ptPaste.value = '';
+      }
+    });
+  }
   const ptAdd = document.getElementById('bPatientAdd');
   if (ptAdd) ptAdd.onclick = () => bAddPatient($('bPatientInput').value);
   const ptInput = document.getElementById('bPatientInput');
@@ -14123,7 +14205,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v8.50 · 2-Jul";
+const SAUMYA_BUILD = "v8.52 · 2-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
