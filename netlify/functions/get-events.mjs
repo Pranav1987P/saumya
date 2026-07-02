@@ -19,26 +19,30 @@ export default async (req) => {
   const store = getStore("saumya-events");
   const now = Date.now();
 
-  // Cover today + yesterday IST (handles cross-midnight events)
-  const prefixes = [
-    istDateKey(now - 24 * 60 * 60 * 1000),
-    istDateKey(now),
-  ];
+  // Read the FULL 7-day retention window (oldest → newest), so skipping the
+  // app for a few days never loses the in-between days. Server-side dedup
+  // keeps at most ~1 arrival + 1 departure per event type per day, so this
+  // is still only ~50 small blobs at worst.
+  const prefixes = [];
+  for (let i = 6; i >= 0; i--) prefixes.push(istDateKey(now - i * 24 * 60 * 60 * 1000));
+
+  const keys = [];
+  for (const prefix of prefixes) {
+    try {
+      const { blobs } = await store.list({ prefix: prefix + "/" });
+      for (const b of blobs || []) keys.push(b.key);
+    } catch (e) { console.error('list failed', prefix, e); }
+  }
 
   const events = [];
-  for (const prefix of prefixes) {
-    let blobs;
-    try { ({ blobs } = await store.list({ prefix: prefix + "/" })); }
-    catch (e) { console.error('list failed', prefix, e); continue; }
-    for (const b of blobs || []) {
-      try {
-        const rec = await store.get(b.key, { type: "json" });
-        if (rec && typeof rec.ts === 'number' && rec.ts > since) {
-          events.push({ event: rec.event, ts: rec.ts, received: rec.received });
-        }
-      } catch (e) { console.error('get failed', b.key, e); }
-    }
-  }
+  await Promise.all(keys.map(async (key) => {
+    try {
+      const rec = await store.get(key, { type: "json" });
+      if (rec && typeof rec.ts === 'number' && rec.ts > since) {
+        events.push({ event: rec.event, ts: rec.ts, received: rec.received });
+      }
+    } catch (e) { console.error('get failed', key, e); }
+  }));
   events.sort((a, b) => a.ts - b.ts);
 
   // Fire-and-forget cleanup of blobs older than 7 days
