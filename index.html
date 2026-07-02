@@ -4160,6 +4160,31 @@ body.app-c-active .app-b { display: none !important; }
 .b-pending-bucket-patients { border-left: 3px solid rgba(96, 165, 250, 0.4); }
 .b-pending-bucket-me       { border-left: 3px solid rgba(167, 139, 250, 0.4); }
 
+/* v8.54 — 4 mutually-exclusive work modes: group headers + stripes */
+.b-pending-grp {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.3px;
+  margin: 17px 0 8px; padding-bottom: 5px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.b-pending-grp:first-child { margin-top: 4px; }
+.b-grp-n { margin-left: auto; font-size: 11px; font-weight: 600; color: var(--text-very-faint);
+  background: rgba(255,255,255,0.06); border-radius: 10px; padding: 1px 8px; }
+.b-grp-implant { color: rgba(45,212,191,0.95); }
+.b-grp-handson { color: rgba(96,165,250,0.95); }
+.b-grp-admin   { color: rgba(251,191,36,0.95); }
+.b-grp-home    { color: rgba(167,139,250,0.95); }
+.b-pl-implant { border-left: 3px solid rgba(45,212,191,0.55); }
+.b-pl-handson { border-left: 3px solid rgba(96,165,250,0.55); }
+.b-pl-admin   { border-left: 3px solid rgba(251,191,36,0.55); }
+.b-pl-home    { border-left: 3px solid rgba(167,139,250,0.55); }
+.b-pending-bucket-edit { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+.b-pending-bucket-edit .b-pending-bucket-pill { font-size: 11.5px; padding: 5px 9px; }
+/* categorized bulk-paste review */
+.b-bulk-grp { display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; margin: 11px 0 6px; }
+.b-bulk-prow { display: grid; grid-template-columns: 1fr auto 30px; gap: 6px; align-items: center; margin-bottom: 6px; }
+.b-bulk-cat { background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 8px; padding: 6px 4px; color: var(--text); font-family: inherit; font-size: 11px; max-width: 122px; }
+
 /* Starred items: subtle gold tint and slightly heavier border */
 .b-pending-item.starred {
   background: rgba(251, 191, 36, 0.04);
@@ -4858,6 +4883,7 @@ body.app-c-active .app-b { display: none !important; }
         <input type="text" class="b-pending-input" id="bPendingInput" placeholder="What needs to be done?">
         <button class="b-pending-add" id="bPendingAdd">＋</button>
       </div>
+      <div class="b-bulk" id="bPendingBulk" style="display:none;"></div>
       <div class="b-pending-list" id="bPendingList"></div>
     </section>
 
@@ -11771,75 +11797,55 @@ let bSpeechInputId = 'bPendingInput';
 let bSpeechMicId = 'bPendingMic';
 let bSpeechSubId = 'bPendingSub';
 
-// Pending buckets: 2 categories — Clinic tasks + Ops (admin/maintenance)
+// Pending buckets: 4 mutually-exclusive modes of work (each task lands in one).
 const PENDING_BUCKETS = [
-  { key: 'clinic',   label: 'Clinical', icon: '🦷', desc: 'Treatment, procedures, clinical decisions' },
-  { key: 'ops',      label: 'Business', icon: '💼', desc: 'Staff, money, marketing, admin' },
+  { key: 'implant', label: 'Implant & surgery', icon: '🦷' },
+  { key: 'handson', label: 'Clinic · hands-on',  icon: '🔧' },
+  { key: 'admin',   label: 'Admin, people & money', icon: '📋' },
+  { key: 'home',    label: 'Personal & home',    icon: '🏠' },
 ];
+const PENDING_BUCKET_KEYS = ['implant', 'handson', 'admin', 'home'];
 
-let bSelectedBucket = 'clinic'; // default for new items
+let bSelectedBucket = 'auto'; // 'auto' = let bGuessBucket decide
 
-// Auto-categorize text into a bucket using simple heuristics
+// Auto-categorize a task into exactly one of the 4 buckets.
+// Priority: implant → hands-on → personal/home → admin (the catch-all).
 function bGuessBucket(text) {
-  const t = (text || '').toLowerCase();
-
-  // CLINIC: hardware, equipment, repairs
-  const clinicKeywords = [
-    'chair', 'drill', 'compressor', 'autoclave', 'instrument', 'instruments',
-    'mechanic', 'fix', 'repair', 'service', 'servicing', 'install', 'installation',
-    'implant kit', 'implant instrument', 'rcm', 'sterilizer', 'suction',
-    'light', 'x-ray', 'rvg', 'opg', 'air conditioner', 'ac ', 'plumbing',
-    'electrician', 'wiring', 'bulb', 'fan', 'tile', 'paint', 'glass',
-    'torque', 'speed of', 'chart of drilling', 'kit', 'tray', 'handpiece',
-    'micromotor', 'scaler', 'ultrasonic', 'spare', 'order new', 'buy new',
-    'maintenance', 'amc',
+  const t = ' ' + (text || '').toLowerCase() + ' ';
+  // 1. Implantology & surgery — the skill path (study, planning, protocols, supplies)
+  const IMPLANT = [
+    'implant', 'implantolog', 'zygoma', 'pterygoid', 'surgical guide', 'guided surgery',
+    'osteotom', 'sinus lift', 'bone graft', 'neodent', 'full arch', 'full mouth',
+    'abutment', 'osseo', 'prosthesis', 'gbr',
   ];
-  // OPS: staff, salary, admin, paperwork
-  const opsKeywords = [
-    'salary', 'staff', 'soniya', 'kanchan', 'krishna', 'sanjay', 'leena',
-    'bhumika', 'bhawna', 'priyal', 'khushboo', 'reception', 'assistant',
-    'gst', 'tax', 'tds', 'accountant', 'ca ', 'audit', 'pf ', 'esi',
-    'nabh', 'cspdcl', 'license', 'renewal', 'rent', 'lease', 'agreement',
-    'bill', 'billing', 'invoice', 'payment', 'expense', 'budget',
-    'hire', 'fire', 'warn', 'training', 'review', 'feedback',
-    'admin', 'paperwork', 'document', 'sop', 'protocol',
+  // 2. Clinic hands-on — physical, on-site, sleeves-up setup/repair
+  const HANDSON = [
+    'shift', 'chamber', 'second room', 'install', 'cautery', 'electrosurg',
+    'sideboard', 'furniture', 'chair', 'compressor', 'autoclave', 'x-ray', 'rvg',
+    'opg', 'plumbing', 'electrician', 'wiring', ' tile', 'paint', 'air condition',
+    'machine', 'equipment', 'handpiece', 'micromotor', 'scaler', 'suction',
+    'sterili', ' fix ', 'repair', 'servic', 'dismantle',
   ];
-  // PATIENTS: clinical, cases, follow-ups
-  const patientKeywords = [
-    'patient', 'rk', 'follow up', 'follow-up', 'followup', 'recall',
-    'estimate', 'consent', 'consult', 'consultation',
-    'rct', 'root canal', 'extraction', 'implant patient', 'aligner',
-    'invisalign', 'denture', 'crown', 'bridge', 'scaling',
-    'review patient', 'post op', 'post-op', 'medication', 'prescription',
-    'case ', 'complaint', 'refund', 'discount', 'appointment',
-    'radiologist', 'ma\'am', 'referral', 'doctor',
+  // 3. Personal & home — you, health, family
+  const HOME = [
+    'walk', 'jog', 'running', 'exercise', ' gym', 'blood test', ' health',
+    'vitamin', 'medicine regimen', 'my medicine', 'personal medicine', 'pranshu',
+    'family', ' home', 'house', ' maid', 'helper', 'carpenter', 'personal',
+    'playlist', 'youtube', ' song', ' sleep', ' diet',
   ];
-  // ME: study, growth, papers
-  const meKeywords = [
-    'study', 'read', 'paper', 'book', 'course', 'webinar', 'conference',
-    'workshop', 'cme', 'cde', 'fellowship', 'certification', 'exam',
-    'research', 'thesis', 'publication', 'article', 'journal', 'literature',
-    'learn', 'practice', 'skill', 'video', 'youtube', 'tutorial',
-    'my own', 'self', 'growth', 'reflection', 'journal entry',
-  ];
-
-  // Order matters: most specific first. Patients > Clinic > Ops > Me by default,
-  // but if a Me keyword is present strongly, prefer Me.
-  for (const k of meKeywords)       if (t.includes(k)) return 'me';
-  for (const k of patientKeywords)  if (t.includes(k)) return 'patients';
-  for (const k of opsKeywords)      if (t.includes(k)) return 'ops';
-  for (const k of clinicKeywords)   if (t.includes(k)) return 'clinic';
-
-  return 'clinic'; // safest default — most of his backlog is clinic-hardware
+  for (const k of IMPLANT) if (t.includes(k)) return 'implant';
+  for (const k of HANDSON) if (t.includes(k)) return 'handson';
+  for (const k of HOME)    if (t.includes(k)) return 'home';
+  // 4. Everything else — hiring, paperwork, money, marketing, tech, listings
+  return 'admin';
 }
 
 function bMigrateUncategorized() {
   ensureAppB();
   let migrated = 0;
   for (const p of state.appB.pending) {
-    // Re-migrate items still on the old 3-bucket system (quick/build/watch)
-    // or items missing a bucket entirely.
-    if (!p.bucket || ['quick', 'build', 'watch'].includes(p.bucket)) {
+    // Re-guess anything not on the current 4-bucket system (old clinic/ops/patients/me, quick/build/watch, or missing).
+    if (!p.bucket || !PENDING_BUCKET_KEYS.includes(p.bucket)) {
       p.bucket = bGuessBucket(p.text);
       migrated++;
     }
@@ -11848,15 +11854,18 @@ function bMigrateUncategorized() {
   return migrated;
 }
 
-function bAddPending(text) {
+function bAddPending(text, forcedBucket) {
   ensureAppB();
   const trimmed = (text || '').trim();
   if (!trimmed) return;
+  const bucket = (forcedBucket && PENDING_BUCKET_KEYS.includes(forcedBucket))
+    ? forcedBucket
+    : bGuessBucket(trimmed);
   state.appB.pending.unshift({
     id: genBId('pend'),
     ts: Date.now(),
     text: trimmed,
-    bucket: bSelectedBucket || bGuessBucket(trimmed),
+    bucket: bucket,
     starred: false,
     doneAt: null,
   });
@@ -11953,6 +11962,65 @@ function wirePatientBulk() {
       const pin = $('bPatientInput'); if (pin) pin.value = '';
     } else if (t.classList.contains('b-bulk-cancel')) {
       box.style.display = 'none'; box.innerHTML = '';
+    }
+  });
+}
+
+// ===== v8.54: smart categorized paste for the Pending card =====
+// Paste a mixed to-do list; each line is auto-sorted into one of the 4 modes,
+// shown grouped for review (edit / move / remove), then added together.
+let bPendingBulkItems = [];
+function renderPendingBulk() {
+  const box = $('bPendingBulk'); if (!box) return;
+  const items = bPendingBulkItems;
+  if (!items.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  const opts = (sel) => PENDING_BUCKETS.map(b => `<option value="${b.key}"${b.key === sel ? ' selected' : ''}>${b.icon} ${escapeHtml(b.label)}</option>`).join('');
+  let h = `<div class="b-bulk-head">${items.length} pasted — sorted into groups. Fix or move any, then add all.</div>`;
+  for (const bkt of PENDING_BUCKETS) {
+    const inGroup = items.map((it, i) => ({ it, i })).filter(x => x.it.bucket === bkt.key);
+    if (!inGroup.length) continue;
+    h += `<div class="b-bulk-grp b-grp-${bkt.key}">${bkt.icon} ${escapeHtml(bkt.label)} <span class="b-grp-n">${inGroup.length}</span></div>`;
+    for (const { it, i } of inGroup) {
+      h += `<div class="b-bulk-prow">
+        <input class="b-bulk-input b-bulk-ptext" data-idx="${i}" value="${escapeHtml(it.text)}">
+        <select class="b-bulk-cat" data-idx="${i}">${opts(it.bucket)}</select>
+        <button class="b-bulk-x" data-idx="${i}" aria-label="Remove">\u2715</button>
+      </div>`;
+    }
+  }
+  h += `<div class="b-bulk-actions"><button class="b-bulk-addall">\uFF0B Add all ${items.length}</button><button class="b-bulk-cancel">Clear</button></div>`;
+  box.innerHTML = h;
+  box.style.display = 'block';
+}
+function wirePendingBulk() {
+  const box = $('bPendingBulk'); if (!box || box.dataset.wired) return;
+  box.dataset.wired = '1';
+  box.addEventListener('input', (e) => {
+    if (e.target.classList.contains('b-bulk-ptext')) {
+      const i = +e.target.dataset.idx;
+      if (bPendingBulkItems[i]) bPendingBulkItems[i].text = e.target.value;
+    }
+  });
+  box.addEventListener('change', (e) => {
+    if (e.target.classList.contains('b-bulk-cat')) {
+      const i = +e.target.dataset.idx;
+      if (bPendingBulkItems[i]) bPendingBulkItems[i].bucket = e.target.value;
+      renderPendingBulk(); // regroup under the new category
+    }
+  });
+  box.addEventListener('click', (e) => {
+    const t = e.target;
+    if (t.classList.contains('b-bulk-x')) {
+      const i = +t.dataset.idx;
+      bPendingBulkItems.splice(i, 1);
+      renderPendingBulk();
+    } else if (t.classList.contains('b-bulk-addall')) {
+      const list = bPendingBulkItems.filter(it => (it.text || '').trim());
+      for (let k = list.length - 1; k >= 0; k--) bAddPending(list[k].text.trim(), list[k].bucket); // reverse so first pasted lands on top
+      bPendingBulkItems = []; box.style.display = 'none'; box.innerHTML = '';
+      const pin = $('bPendingInput'); if (pin) pin.value = '';
+    } else if (t.classList.contains('b-bulk-cancel')) {
+      bPendingBulkItems = []; box.style.display = 'none'; box.innerHTML = '';
     }
   });
 }
@@ -12119,48 +12187,59 @@ let bPendingEditingId = null;
 
 function renderPendingList() {
   ensureAppB();
-  // Auto-migrate any item without a bucket (one-time)
+  // Auto-migrate any item without a valid bucket
   bMigrateUncategorized();
 
   const list = $('bPendingList');
   if (!list) return;
 
-  // One flat list — no buckets. Open first, starred first within open, newest first; done at the end.
-  const items = state.appB.pending.slice().sort((a, b) => {
+  const sortFn = (a, b) => {
     if (!!a.doneAt !== !!b.doneAt) return a.doneAt ? 1 : -1;
     if (!!a.starred !== !!b.starred) return a.starred ? -1 : 1;
     return b.ts - a.ts;
-  });
+  };
+  const all = state.appB.pending.slice();
 
-  let html = '';
-  for (const p of items) {
+  const itemHTML = (p) => {
     const d = new Date(p.ts);
     const isToday = sameDay(p.ts, Date.now());
     const stamp = isToday
       ? d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' })
       : d.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: '2-digit', timeZone: 'Asia/Kolkata' });
-    const isEditing = bPendingEditingId === p.id;
-    if (isEditing) {
-      html += `
+    if (bPendingEditingId === p.id) {
+      const pills = PENDING_BUCKETS.map(b =>
+        `<button class="b-pending-bucket-pill${p.bucket === b.key ? ' selected' : ''}" data-bucket-val="${b.key}" data-bucket-id="${p.id}">${b.icon} ${escapeHtml(b.label)}</button>`
+      ).join('');
+      return `
         <div class="b-pending-item editing" data-id="${p.id}">
           <textarea class="b-pending-edit-input" data-edit-id="${p.id}" rows="2">${escapeHtml(p.text)}</textarea>
+          <div class="b-pending-bucket-row b-pending-bucket-edit">${pills}</div>
           <div class="b-pending-edit-actions">
             <button class="b-pending-edit-cancel" data-id="${p.id}">Cancel</button>
             <button class="b-pending-edit-save" data-id="${p.id}">Save</button>
           </div>
         </div>
       `;
-    } else {
-      html += `
-        <div class="b-pending-item ${p.doneAt ? 'done' : ''} ${p.starred ? 'starred' : ''}" data-id="${p.id}">
-          <span class="b-pending-check" data-action="toggle">${p.doneAt ? '\u2713' : ''}</span>
-          <span class="b-pending-text" data-action="toggle">${escapeHtml(p.text)}<span class="b-pending-meta"> \u00b7 ${stamp}${p.editedAt ? ' \u00b7 edited' : ''}</span></span>
-          <button class="b-pending-star" data-action="star" data-id="${p.id}" title="${p.starred ? 'Unstar' : 'Star \u2014 make it matter more'}">${p.starred ? '\u2605' : '\u2606'}</button>
-          <button class="b-pending-edit-btn" data-action="edit" data-id="${p.id}" title="Edit">\u270e</button>
-          <button class="b-pending-del" data-action="del" data-id="${p.id}" title="Delete">\u2715</button>
-        </div>
-      `;
     }
+    return `
+      <div class="b-pending-item b-pl-${p.bucket} ${p.doneAt ? 'done' : ''} ${p.starred ? 'starred' : ''}" data-id="${p.id}">
+        <span class="b-pending-check" data-action="toggle">${p.doneAt ? '\u2713' : ''}</span>
+        <span class="b-pending-text" data-action="toggle">${escapeHtml(p.text)}<span class="b-pending-meta"> \u00b7 ${stamp}${p.editedAt ? ' \u00b7 edited' : ''}</span></span>
+        <button class="b-pending-star" data-action="star" data-id="${p.id}" title="${p.starred ? 'Unstar' : 'Star \u2014 make it matter more'}">${p.starred ? '\u2605' : '\u2606'}</button>
+        <button class="b-pending-edit-btn" data-action="edit" data-id="${p.id}" title="Edit">\u270e</button>
+        <button class="b-pending-del" data-action="del" data-id="${p.id}" title="Delete">\u2715</button>
+      </div>
+    `;
+  };
+
+  // Group by bucket, in the fixed 4-mode order. Empty groups are skipped.
+  let html = '';
+  for (const bkt of PENDING_BUCKETS) {
+    const group = all.filter(p => p.bucket === bkt.key).sort(sortFn);
+    if (!group.length) continue;
+    const openN = group.filter(p => !p.doneAt).length;
+    html += `<div class="b-pending-grp b-grp-${bkt.key}">${bkt.icon} ${escapeHtml(bkt.label)}${openN ? `<span class="b-grp-n">${openN}</span>` : ''}</div>`;
+    for (const p of group) html += itemHTML(p);
   }
   list.innerHTML = html;
 
@@ -12438,7 +12517,18 @@ function wireAppB() {
         bAddPending(pendingInput.value);
       }
     };
+    pendingInput.addEventListener('paste', (e) => {
+      const txt = ((e.clipboardData || window.clipboardData) || { getData: () => '' }).getData('text');
+      const lines = bParseBulk(txt);
+      if (lines.length >= 2) { // a real list — auto-sort and stage for review
+        e.preventDefault();
+        bPendingBulkItems = lines.map(n => ({ text: n, bucket: bGuessBucket(n) }));
+        renderPendingBulk();
+        pendingInput.value = '';
+      }
+    });
   }
+  wirePendingBulk();
   // Bucket selector pills (for new items)
   const bucketSel = document.getElementById('bPendingBucketSelect');
   if (bucketSel) {
@@ -14276,7 +14366,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v8.53 · 2-Jul";
+const SAUMYA_BUILD = "v8.54 · 2-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
