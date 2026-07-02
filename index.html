@@ -2741,19 +2741,41 @@ body.app-b-active #anniversaryCard { display: none !important; }
   color: var(--text-very-faint); font-size: 18px; cursor: pointer; padding: 4px 6px;
 }
 .b-patient-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px 14px; margin-top: 8px;
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 11px; margin-top: 6px;
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.10);
-  border-radius: 12px;
+  border-radius: 10px;
 }
-.b-patient-item-text { flex: 1 1 auto; min-width: 0; color: var(--text); font-size: 16px; }
-.b-patient-item.done .b-patient-item-text { text-decoration: line-through; opacity: 0.5; }
+.b-patient-body { flex: 1 1 auto; min-width: 0; cursor: pointer; }
+.b-patient-name { color: var(--text); font-size: 14px; line-height: 1.3; word-break: break-word; }
+.b-patient-tx { font-size: 11.5px; line-height: 1.3; color: rgba(45,212,191,0.85); margin-top: 2px; word-break: break-word; }
+.b-patient-tx-empty { color: var(--text-very-faint); font-style: italic; }
+.b-patient-item.done .b-patient-name { text-decoration: line-through; opacity: 0.5; }
+.b-patient-item.done .b-patient-tx { opacity: 0.4; }
 .b-patient-check {
-  flex: 0 0 auto; width: 22px; height: 22px; border-radius: 6px;
+  flex: 0 0 auto; width: 19px; height: 19px; border-radius: 6px;
   border: 1.5px solid rgba(255,255,255,0.25); background: none; cursor: pointer;
-  color: var(--teal); font-size: 14px; display: flex; align-items: center; justify-content: center;
+  color: var(--teal); font-size: 12px; display: flex; align-items: center; justify-content: center;
 }
+.b-patient-edit-btn {
+  flex: 0 0 auto; background: none; border: none;
+  color: var(--text-very-faint); font-size: 14px; cursor: pointer; padding: 4px 5px;
+}
+.b-patient-edit-btn:active { color: var(--teal); }
+.b-patient-item.editing { flex-direction: column; align-items: stretch; gap: 7px; }
+.b-patient-edit-name, .b-patient-edit-tx {
+  width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 10px; color: var(--text); font-family: inherit; font-size: 13.5px;
+}
+.b-patient-edit-tx { font-size: 12.5px; }
+.b-patient-edit-name:focus, .b-patient-edit-tx:focus { outline: none; border-color: rgba(45,212,191,0.6); }
+.b-patient-edit-row-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.b-patient-edit-cancel, .b-patient-edit-save {
+  border: none; border-radius: 8px; padding: 8px 16px; font-size: 13px; cursor: pointer;
+}
+.b-patient-edit-cancel { background: rgba(255,255,255,0.06); color: var(--text-faint); }
+.b-patient-edit-save { background: var(--teal); color: #0a0f1e; font-weight: 700; }
 
 
 /* App switcher tabs at top */
@@ -11880,6 +11902,7 @@ function bDeletePending(id) {
 }
 
 // ===== v8: Patients to plan =====
+let editingPatientId = null;
 function bAddPatient(text) {
   ensureAppB();
   const t = (text || '').trim();
@@ -11957,14 +11980,62 @@ function renderPatientList() {
   });
   let html = '';
   for (const p of items) {
-    html += `
+    const tx = (p.tx || '').trim();
+    if (editingPatientId === p.id) {
+      html += `
+      <div class="b-patient-item editing" data-id="${p.id}">
+        <input class="b-patient-edit-name" value="${escapeHtml(p.text)}" placeholder="Patient name">
+        <input class="b-patient-edit-tx" value="${escapeHtml(tx)}" placeholder="Treatment to plan (optional) — e.g. RCT 46, implant 36, full arch">
+        <div class="b-patient-edit-row-actions">
+          <button class="b-patient-edit-cancel" onclick="bCancelPatientEdit()">Cancel</button>
+          <button class="b-patient-edit-save" onclick="bSavePatient('${p.id}')">Save</button>
+        </div>
+      </div>`;
+    } else {
+      const txLine = tx
+        ? `<div class="b-patient-tx">${escapeHtml(tx)}</div>`
+        : `<div class="b-patient-tx b-patient-tx-empty">+ add treatment</div>`;
+      html += `
       <div class="b-patient-item${p.doneAt ? ' done' : ''}">
         <button class="b-patient-check" onclick="bTogglePatient('${p.id}')">${p.doneAt ? '✓' : ''}</button>
-        <span class="b-patient-item-text">${escapeHtml(p.text)}</span>
+        <div class="b-patient-body" onclick="bStartEditPatient('${p.id}')">
+          <div class="b-patient-name">${escapeHtml(p.text)}</div>
+          ${txLine}
+        </div>
+        <button class="b-patient-edit-btn" onclick="bStartEditPatient('${p.id}')" title="Edit">\u270e</button>
         <button class="b-patient-item-del" onclick="bDeletePatient('${p.id}')">✕</button>
       </div>`;
+    }
   }
   list.innerHTML = html;
+  if (editingPatientId) {
+    const nameInput = list.querySelector('.b-patient-item.editing .b-patient-edit-name');
+    if (nameInput) { try { nameInput.focus(); } catch (e) {} }
+  }
+}
+function bStartEditPatient(id) {
+  editingPatientId = id;
+  renderPatientList();
+}
+function bCancelPatientEdit() {
+  editingPatientId = null;
+  renderPatientList();
+}
+function bSavePatient(id) {
+  ensureAppB();
+  const p = state.appB.patients.find(x => x.id === id);
+  if (!p) { editingPatientId = null; renderPatientList(); return; }
+  const row = document.querySelector('.b-patient-item.editing[data-id="' + id + '"]');
+  if (row) {
+    const nm = row.querySelector('.b-patient-edit-name');
+    const tx = row.querySelector('.b-patient-edit-tx');
+    const newName = ((nm && nm.value) || '').trim();
+    if (newName) p.text = newName; // never blank the name
+    p.tx = ((tx && tx.value) || '').trim();
+  }
+  editingPatientId = null;
+  bSave();
+  renderPatientList();
 }
 
 // ===== v8: Goals with reverse countdown =====
@@ -14205,7 +14276,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v8.52 · 2-Jul";
+const SAUMYA_BUILD = "v8.53 · 2-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
