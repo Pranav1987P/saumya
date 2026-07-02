@@ -2818,6 +2818,9 @@ body.app-b-active #life445Toggle,
 body.app-b-active .energy-motto,
 body.app-b-active .vitd-banner,
 body.app-b-active #nowCardSlot,
+body.app-b-active #steerCardSlot,
+body.app-b-active .progress,
+body.app-b-active .recap-card,
 body.app-b-active .overview-card,
 body.app-b-active .wake-card,
 body.app-b-active .evening-card,
@@ -2847,6 +2850,9 @@ body.app-c-active #life445Toggle,
 body.app-c-active .energy-motto,
 body.app-c-active .vitd-banner,
 body.app-c-active #nowCardSlot,
+body.app-c-active #steerCardSlot,
+body.app-c-active .progress,
+body.app-c-active .recap-card,
 body.app-c-active .overview-card,
 body.app-c-active .wake-card,
 body.app-c-active .evening-card,
@@ -14117,7 +14123,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v8.48 · 2-Jul";
+const SAUMYA_BUILD = "v8.49 · 2-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
