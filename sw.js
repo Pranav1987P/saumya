@@ -3,7 +3,7 @@
 // as an installable app (real icon, no browser badge). It does light offline
 // caching of the shell so the app still opens if the network is briefly down.
 
-const CACHE = 'saumya-v8-49';
+const CACHE = 'saumya-v8-50';
 const SHELL = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', (event) => {

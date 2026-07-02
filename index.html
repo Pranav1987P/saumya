@@ -14123,7 +14123,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v8.49 · 2-Jul";
+const SAUMYA_BUILD = "v8.50 · 2-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
@@ -15040,33 +15040,25 @@ body.app-b-active #saumyaLife, body.app-c-active #saumyaLife { display:none !imp
     var week=(sd&&typeof sd.weekKm==='number'&&sd.weekKm>0)?('<span class="sl-strava-week">This week · '+sd.weekKm+' km</span>'):'';
     return '<div class="sl-strava'+(zero?' is-zero':'')+'">\uD83D\uDEB6 '+inner+' <span class="sl-strava-tag">powered by Strava</span>'+week+'</div>';
   }
-  function bodyDeductions(w){
-    var out=[];
-    // Recovery trend — the falling case is the real alarm; rising is encouragement.
-    if(Array.isArray(w.recoveryTrend)&&w.recoveryTrend.length>=3){
-      var seq=w.recoveryTrend.join('\u2192');
-      if(w.recoveryDir==='falling') out.push({tone:'warn',t:'Recovery sliding '+seq+' — that\u2019s a withdrawal, not a blip. Ease the next day or two; steady hands are built rested.'});
-      else if(w.recoveryDir==='rising') out.push({tone:'good',t:'Recovery climbing '+seq+' — you\u2019re banking it. A good day to push the full implant block.'});
-    }
-    // HRV against your own baseline, not the scary raw number.
-    if(typeof w.hrv==='number'&&typeof w.hrvBaseline==='number'&&typeof w.hrvDelta==='number'){
-      var band=Math.max(3,Math.round(w.hrvBaseline*0.12));
-      if(w.hrvDelta<=-band) out.push({tone:'warn',t:'HRV '+w.hrv+' is under your ~'+w.hrvBaseline+' baseline — your system\u2019s working harder than usual. Guard sleep tonight.'});
-      else if(w.hrvDelta>=band) out.push({tone:'good',t:'HRV '+w.hrv+' sits above your ~'+w.hrvBaseline+' baseline — well recovered.'});
-    }
-    // Respiratory-rate tripwire — the highest-value early signal.
-    if(w.respFlag===true&&typeof w.respRate==='number'&&typeof w.respBaseline==='number'){
-      out.push({tone:'warn',t:'Breathing up to '+w.respRate+'/min from your ~'+w.respBaseline+' baseline — often the first sign of a cold, a day or two early. Rest tonight; don\u2019t book a hard case tomorrow.'});
-    } else if(w.respFlag===false&&typeof w.respBaseline==='number'){
-      out.push({tone:'ok',t:'Breathing steady at baseline — no illness signal.'});
-    }
-    // Sleep-debt cost — tie it to the chair.
-    if(typeof w.sleepDebtMin==='number'&&w.sleepDebtMin>=60){
-      var d=fmtMin(w.sleepDebtMin); if(d) out.push({tone:'warn',t:'About '+d+' of sleep debt — precision fades before you feel it. One early night clears most of it.'});
-    }
-    // Sleep consistency.
-    if(typeof w.sleepConsistency==='number'&&w.sleepConsistency<70){
-      out.push({tone:'ok',t:'Sleep timing only '+w.sleepConsistency+'% consistent — a steady bedtime lifts tomorrow\u2019s recovery more than any supplement.'});
+  function bodyHeadline(w){
+    // ONE line — the single thing that matters this morning. An alarm (possible
+    // illness, low/sliding recovery) becomes the headline itself, so nothing
+    // important is ever buried. Everything else stays in the detail below.
+    var rec=w.recovery, out=[];
+    var illness=(w.respFlag===true&&typeof w.respBaseline==='number');
+    var falling=(Array.isArray(w.recoveryTrend)&&w.recoveryDir==='falling');
+    var shortSleep=(typeof w.sleepHrs==='number'&&w.sleepHrs<5.5);
+    if(illness){
+      out.push({tone:'warn',t:'Breathing\u2019s up from your usual — a cold may be starting. Rest well tonight and keep tomorrow light.'});
+    } else if(typeof rec==='number'&&(rec<34||falling)){
+      out.push({tone:'warn',t:'Running low today'+(falling?' — recovery has slid a few days':'')+'. Clinic first, gentle on the walk. Tomorrow you push.'});
+    } else if(typeof rec==='number'&&rec>=67){
+      if(shortSleep) out.push({tone:'good',t:'Recovered and ready — push the implant block. One note: sleep ran short, so aim for an early night.'});
+      else out.push({tone:'good',t:'You\u2019re charged and well recovered — a good day to push the implant block and the walk.'});
+    } else if(typeof rec==='number'){
+      out.push({tone:'ok',t:'Steady this morning — keep the day consistent, don\u2019t redline. Consistent beats heroic.'});
+    } else if(shortSleep){
+      out.push({tone:'warn',t:'Short on sleep last night — precision dips before you feel it. Bank an early night tonight.'});
     }
     return out;
   }
@@ -15077,12 +15069,9 @@ body.app-b-active #saumyaLife, body.app-c-active #saumyaLife { display:none !imp
     var foot=stravaLine();
     if(connected){
       var body='';
-      var deds=bodyDeductions(w);
-      var haveBaseline=(typeof w.hrvBaseline==='number'||typeof w.respBaseline==='number'||Array.isArray(w.recoveryTrend));
-      if(deds.length>4) deds=deds.slice(0,4);
-      if(!deds.length&&haveBaseline) deds=[{tone:'ok',t:'All steady — nothing needs your attention today. Push as planned.'}];
+      var deds=bodyHeadline(w);
       if(deds.length){
-        body+='<div class="sl-read"><div class="sl-read-h">\uD83D\uDCCA The read</div>'
+        body+='<div class="sl-read">'
             +deds.map(function(x){return '<div class="sl-ded '+x.tone+'">'+esc(x.t)+'</div>';}).join('')
             +'</div>';
       }
@@ -15111,7 +15100,7 @@ body.app-b-active #saumyaLife, body.app-c-active #saumyaLife { display:none !imp
         if(typeof w.spo2==='number') raw2.push('SpO₂ '+w.spo2+'%');
         if(typeof w.skinTemp==='number') raw2.push('skin '+w.skinTemp+'°C');
         body+='<div class="sl-blk"><div class="sl-blk-h">☀️ This morning</div>'
-            +'<div class="sl-blk-l"><b class="sl-rec-'+lvl+'">'+w.recovery+'% recovered</b> — '+esc(recoveryStory(lvl))+'</div>'
+            +'<div class="sl-blk-l"><b class="sl-rec-'+lvl+'">'+w.recovery+'% recovered</b></div>'
             +(sense?'<div class="sl-blk-s">'+esc(sense)+'</div>':'')
             +(raw2.length?'<div class="sl-raw">'+esc(raw2.join(' · '))+'</div>':'')+'</div>';
       }
