@@ -143,6 +143,7 @@ export default async (req) => {
     const rec = recScored[0] || recArr[0] || null;
     const scores = recScored.map(r => num(r.score.recovery_score)).filter(v => v !== null);
     const hrvs = recScored.map(r => num(r.score.hrv_rmssd_milli)).filter(v => v !== null);
+    const rhrs = recScored.map(r => num(r.score.resting_heart_rate)).filter(v => v !== null);
 
     // Sleep history: night sleeps only (naps excluded), newest first.
     const nights = slpArr
@@ -167,6 +168,14 @@ export default async (req) => {
     if (hrvs.length >= 6) {
       const base = median(hrvs.slice(1));
       if (base !== null) { hrvBaseline = roundN(base); hrvDelta = roundN(hrvs[0] - base); }
+    }
+    // Resting-HR vs personal baseline (median of prior scored days; need >=5 prior + today).
+    // rhrFlag trips when today's resting HR is >=5 bpm above your usual — a classic
+    // early sign of illness, strain, or stress.
+    let rhrBaseline = null, rhrDelta = null, rhrFlag = null;
+    if (rhrs.length >= 6) {
+      const base = median(rhrs.slice(1));
+      if (base !== null) { rhrBaseline = roundN(base); rhrDelta = roundN(rhrs[0] - base); rhrFlag = (rhrs[0] - base) >= 5; }
     }
     // Respiratory-rate tripwire: today vs prior-night baseline (need >=5 prior + today).
     let respBaseline = null, respDelta = null, respFlag = null;
@@ -238,6 +247,9 @@ export default async (req) => {
       respBaseline: respBaseline,
       respDelta: respDelta,
       respFlag: respFlag,
+      rhrBaseline: rhrBaseline,
+      rhrDelta: rhrDelta,
+      rhrFlag: rhrFlag,
       // meta
       state: (rec && rec.score_state) || null,
       at: (rec && rec.created_at) || null
