@@ -4885,24 +4885,6 @@ body.app-c-active .app-b { display: none !important; }
       <button class="b-btn-primary" id="bOpenEntryBtn" style="width:100%;margin-top:14px;">Begin entry ritual →</button>
     </section>
 
-    <section class="bcard b-pending-card">
-      <div class="b-pending-header">
-        <div class="b-pending-title">📝 Pending — things on my mind</div>
-        <div class="b-pending-sub" id="bPendingSub">Anything on your mind — a task, a reminder, a note. Tap mic or type.</div>
-      </div>
-      <div class="b-pending-bucket-row" id="bPendingBucketSelect" style="display:none;">
-        <button class="b-pending-bucket-pill selected" data-new-bucket="clinic">🦷 Clinical</button>
-        <button class="b-pending-bucket-pill" data-new-bucket="ops">💼 Business</button>
-      </div>
-      <div class="b-pending-input-row">
-        <button class="b-pending-mic" id="bPendingMic" aria-label="Record">🎙</button>
-        <input type="text" class="b-pending-input" id="bPendingInput" placeholder="What needs to be done?">
-        <button class="b-pending-add" id="bPendingAdd">＋</button>
-      </div>
-      <div class="b-bulk" id="bPendingBulk" style="display:none;"></div>
-      <div class="b-pending-list" id="bPendingList"></div>
-    </section>
-
     <!-- ============================================================
          v8 CLINIC — decluttered. Old clinic-management organs
          (Control Room, Danger, Pause, Park decision, High-value case,
@@ -4925,6 +4907,24 @@ body.app-c-active .app-b { display: none !important; }
       </div>
       <div class="b-bulk" id="bPatientBulk" style="display:none;"></div>
       <div class="b-pending-list" id="bPatientList"></div>
+    </section>
+
+    <section class="bcard b-pending-card">
+      <div class="b-pending-header">
+        <div class="b-pending-title">📝 Pending — things on my mind</div>
+        <div class="b-pending-sub" id="bPendingSub">Anything on your mind — a task, a reminder, a note. Tap mic or type.</div>
+      </div>
+      <div class="b-pending-bucket-row" id="bPendingBucketSelect" style="display:none;">
+        <button class="b-pending-bucket-pill selected" data-new-bucket="clinic">🦷 Clinical</button>
+        <button class="b-pending-bucket-pill" data-new-bucket="ops">💼 Business</button>
+      </div>
+      <div class="b-pending-input-row">
+        <button class="b-pending-mic" id="bPendingMic" aria-label="Record">🎙</button>
+        <input type="text" class="b-pending-input" id="bPendingInput" placeholder="What needs to be done?">
+        <button class="b-pending-add" id="bPendingAdd">＋</button>
+      </div>
+      <div class="b-bulk" id="bPendingBulk" style="display:none;"></div>
+      <div class="b-pending-list" id="bPendingList"></div>
     </section>
 
     <!-- v8: Professional goals with reverse countdown (days ticking down) -->
@@ -5875,13 +5875,14 @@ body.app-c-active .app-b { display: none !important; }
 
 <script>
 // ========== VITAMIN D PROTOCOL ==========
-// Reset: Only 1 capsule taken so far (May)
-// Restarting: 3 loading days Wed 4 Jun, Thu 5 Jun, Fri 6 Jun
-// Weekly Thursdays from Jun 11: Jun 11, 18, 25, Jul 2, 9, 16, 23, 30 (8 weekly doses)
+// New regimen (Jul 2026):
+//   Injection (shot): Fri 3 Jul
+//   Capsule loading (3 consecutive days): Fri 10 Jul, Sat 11 Jul, Sun 12 Jul
+//   Weekly capsule (Sundays, 8 doses): Jul 19, 26, Aug 2, 9, 16, 23, 30, Sep 6
 const VIT_D_PROTOCOL = {
-  injectionDates: [],
-  capsuleLoadingDates: ["2026-06-02", "2026-06-03", "2026-06-04"],
-  weeklyCapsuleDates: ["2026-06-11", "2026-06-18", "2026-06-25", "2026-07-02", "2026-07-09", "2026-07-16", "2026-07-23", "2026-07-30"]
+  injectionDates: ["2026-07-03"],
+  capsuleLoadingDates: ["2026-07-10", "2026-07-11", "2026-07-12"],
+  weeklyCapsuleDates: ["2026-07-19", "2026-07-26", "2026-08-02", "2026-08-09", "2026-08-16", "2026-08-23", "2026-08-30", "2026-09-06"]
 };
 
 // ========== WEATHER & SUNRISE (Raipur) - Open-Meteo, no API key ==========
@@ -14401,7 +14402,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v8.57 · 2-Jul";
+const SAUMYA_BUILD = "v8.59 · 3-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
