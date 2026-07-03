@@ -857,6 +857,20 @@ body.app-b-active #anniversaryCard { display: none !important; }
 }
 .vitd-export-btn:active { transform: scale(0.96); }
 
+/* BODY ALARM — prominent morning alert when WHOOP signals are off vs baseline */
+.sl-alarm {
+  margin: 0 0 14px; padding: 14px 16px; border-radius: 16px;
+  background: linear-gradient(135deg, rgba(248,113,113,0.16), rgba(190,18,60,0.09));
+  border: 1.5px solid rgba(248,113,113,0.55);
+  animation: vitdPulse 2.5s ease-in-out infinite;
+}
+.sl-alarm-h { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; color: var(--rose); letter-spacing: 0.2px; }
+.sl-alarm-icon { font-size: 20px; flex-shrink: 0; }
+.sl-alarm-lines { margin-top: 9px; display: flex; flex-direction: column; gap: 6px; }
+.sl-alarm-line { font-size: 13px; color: var(--text); line-height: 1.45; }
+.sl-alarm-line b { color: var(--rose); font-weight: 700; }
+.sl-alarm-foot { margin-top: 10px; font-size: 12.5px; color: var(--text-dim); line-height: 1.4; font-style: italic; }
+
 /* MODE BANNER */
 .mode-banner { margin: 12px 16px 0; padding: 13px 16px; border-radius: 14px; background: var(--card); border: 1px solid var(--border); display: flex; gap: 12px; align-items: flex-start; }
 .mode-banner.setup { border-color: rgba(251, 191, 36, 0.4); background: rgba(251, 191, 36, 0.07); }
@@ -2741,29 +2755,45 @@ body.app-b-active #anniversaryCard { display: none !important; }
   color: var(--text-very-faint); font-size: 18px; cursor: pointer; padding: 4px 6px;
 }
 .b-patient-item {
-  display: flex; align-items: center; gap: 9px;
-  padding: 8px 11px; margin-top: 6px;
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  grid-template-areas:
+    "check body"
+    "actions actions";
+  column-gap: 9px;
+  row-gap: 5px;
+  align-items: start;
+  padding: 9px 12px; margin-top: 6px;
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.10);
   border-radius: 10px;
 }
-.b-patient-body { flex: 1 1 auto; min-width: 0; cursor: pointer; }
+.b-patient-body { grid-area: body; min-width: 0; cursor: pointer; }
 .b-patient-name { color: var(--text); font-size: 14px; line-height: 1.3; word-break: break-word; }
 .b-patient-tx { font-size: 11.5px; line-height: 1.3; color: rgba(45,212,191,0.85); margin-top: 2px; word-break: break-word; }
 .b-patient-tx-empty { color: var(--text-very-faint); font-style: italic; }
 .b-patient-item.done .b-patient-name { text-decoration: line-through; opacity: 0.5; }
 .b-patient-item.done .b-patient-tx { opacity: 0.4; }
 .b-patient-check {
+  grid-area: check;
   flex: 0 0 auto; width: 19px; height: 19px; border-radius: 6px;
   border: 1.5px solid rgba(255,255,255,0.25); background: none; cursor: pointer;
   color: var(--teal); font-size: 12px; display: flex; align-items: center; justify-content: center;
+  margin-top: 1px;
 }
 .b-patient-edit-btn {
   flex: 0 0 auto; background: none; border: none;
   color: var(--text-very-faint); font-size: 14px; cursor: pointer; padding: 4px 5px;
 }
 .b-patient-edit-btn:active { color: var(--teal); }
-.b-patient-item.editing { flex-direction: column; align-items: stretch; gap: 7px; }
+.b-patient-actions {
+  grid-area: actions;
+  display: flex; justify-content: flex-end; align-items: center; gap: 2px;
+  padding-top: 5px; border-top: 1px solid rgba(255,255,255,0.045);
+}
+.b-patient-actions .b-patient-edit-btn,
+.b-patient-actions .b-patient-item-del { font-size: 13px; padding: 3px 9px; }
+.b-patient-item.editing { display: flex; flex-direction: column; align-items: stretch; gap: 7px; }
 .b-patient-edit-name, .b-patient-edit-tx {
   width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border);
   border-radius: 8px; padding: 8px 10px; color: var(--text); font-family: inherit; font-size: 13.5px;
@@ -3963,10 +3993,14 @@ body.app-c-active .app-b { display: none !important; }
 }
 .b-pending-item {
   display: grid;
-  grid-template-columns: 24px 1fr auto auto;
-  gap: 10px;
-  align-items: center;
-  padding: 8px 10px;
+  grid-template-columns: 20px 1fr;
+  grid-template-areas:
+    "check text"
+    "actions actions";
+  column-gap: 9px;
+  row-gap: 5px;
+  align-items: start;
+  padding: 9px 12px;
   background: rgba(255,255,255,0.025);
   border: 1px solid rgba(255,255,255,0.05);
   border-radius: 10px;
@@ -3983,6 +4017,7 @@ body.app-c-active .app-b { display: none !important; }
   text-decoration: line-through;
 }
 .b-pending-check {
+  grid-area: check;
   width: 18px;
   height: 18px;
   border-radius: 5px;
@@ -3994,21 +4029,20 @@ body.app-c-active .app-b { display: none !important; }
   font-size: 11px;
   font-weight: 700;
   flex-shrink: 0;
+  margin-top: 1px;
 }
 .b-pending-item.done .b-pending-check {
   background: rgba(45, 212, 191, 0.15);
   border-color: rgba(45, 212, 191, 0.5);
 }
 .b-pending-text {
+  grid-area: text;
   font-family: 'Cormorant Garamond', 'Cormorant Garamond Fallback', serif;
-  font-size: 16px;
+  font-size: 14px;
   color: var(--text);
-  line-height: 1.35;
+  line-height: 1.4;
   word-break: break-word;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 .b-pending-del {
   background: transparent;
@@ -4209,9 +4243,23 @@ body.app-c-active .app-b { display: none !important; }
 .b-pending-star:active { transform: scale(0.9); }
 .b-pending-item.starred .b-pending-star { color: var(--gold); }
 
-/* Update item grid to fit star button (5 cols now) */
-.b-pending-item {
-  grid-template-columns: 24px 1fr auto auto auto;
+/* Actions row: small buttons on their own line below the full-width text */
+.b-pending-actions {
+  grid-area: actions;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 2px;
+  margin-top: 1px;
+  padding-top: 5px;
+  border-top: 1px solid rgba(255,255,255,0.045);
+}
+.b-pending-actions .b-pending-star,
+.b-pending-actions .b-pending-edit-btn,
+.b-pending-actions .b-pending-del {
+  font-size: 13px;
+  padding: 3px 9px;
+  line-height: 1;
 }
 .b-pending-item.editing { grid-template-columns: 1fr; }
 
@@ -12106,8 +12154,10 @@ function renderPatientList() {
           <div class="b-patient-name">${escapeHtml(p.text)}</div>
           ${txLine}
         </div>
-        <button class="b-patient-edit-btn" onclick="bStartEditPatient('${p.id}')" title="Edit">\u270e</button>
-        <button class="b-patient-item-del" onclick="bDeletePatient('${p.id}')">✕</button>
+        <div class="b-patient-actions">
+          <button class="b-patient-edit-btn" onclick="bStartEditPatient('${p.id}')" title="Edit">\u270e</button>
+          <button class="b-patient-item-del" onclick="bDeletePatient('${p.id}')">✕</button>
+        </div>
       </div>`;
     }
   }
@@ -12260,10 +12310,12 @@ function renderPendingList() {
     return `
       <div class="b-pending-item b-pl-${p.bucket} ${p.doneAt ? 'done' : ''} ${p.starred ? 'starred' : ''}" data-id="${p.id}">
         <span class="b-pending-check" data-action="toggle">${p.doneAt ? '\u2713' : ''}</span>
-        <span class="b-pending-text" data-action="toggle">${escapeHtml(bShorten(p.text))}<span class="b-pending-meta"> \u00b7 ${stamp}${p.editedAt ? ' \u00b7 edited' : ''}</span></span>
-        <button class="b-pending-star" data-action="star" data-id="${p.id}" title="${p.starred ? 'Unstar' : 'Star \u2014 make it matter more'}">${p.starred ? '\u2605' : '\u2606'}</button>
-        <button class="b-pending-edit-btn" data-action="edit" data-id="${p.id}" title="Edit">\u270e</button>
-        <button class="b-pending-del" data-action="del" data-id="${p.id}" title="Delete">\u2715</button>
+        <span class="b-pending-text" data-action="toggle">${escapeHtml(p.text)}<span class="b-pending-meta"> \u00b7 ${stamp}${p.editedAt ? ' \u00b7 edited' : ''}</span></span>
+        <div class="b-pending-actions">
+          <button class="b-pending-star" data-action="star" data-id="${p.id}" title="${p.starred ? 'Unstar' : 'Star \u2014 make it matter more'}">${p.starred ? '\u2605' : '\u2606'}</button>
+          <button class="b-pending-edit-btn" data-action="edit" data-id="${p.id}" title="Edit">\u270e</button>
+          <button class="b-pending-del" data-action="del" data-id="${p.id}" title="Delete">\u2715</button>
+        </div>
       </div>
     `;
   };
@@ -14402,7 +14454,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v8.59 · 3-Jul";
+const SAUMYA_BUILD = "v8.62 · 3-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
@@ -15319,12 +15371,43 @@ body.app-b-active #saumyaLife, body.app-c-active #saumyaLife { display:none !imp
     var week=(sd&&typeof sd.weekKm==='number'&&sd.weekKm>0)?('<span class="sl-strava-week">This week · '+sd.weekKm+' km</span>'):'';
     return '<div class="sl-strava'+(zero?' is-zero':'')+'">\uD83D\uDEB6 '+inner+' <span class="sl-strava-tag">powered by Strava</span>'+week+'</div>';
   }
+  // Prominent morning body-alarm. Fires ONLY when WHOOP signals are genuinely off
+  // vs YOUR OWN baseline (breathing up, resting HR up, HRV well down, oxygen low).
+  // Silent on a normal day \u2014 no false noise. Renders above the calm Body readout.
+  function bodyAlarm(){
+    var w=liveData.whoop;
+    if(!w||!w.connected) return '';
+    var lines=[];
+    if(w.respFlag===true&&typeof w.respRate==='number'&&typeof w.respBaseline==='number'){
+      var rd=(typeof w.respDelta==='number'&&w.respDelta>0)?(' \u2014 up '+w.respDelta+'/min'):'';
+      lines.push('<b>Breathing faster at rest</b> ('+w.respRate+'/min vs your usual '+w.respBaseline+rd+'). Often the earliest sign a cold or infection is starting.');
+    }
+    if(w.rhrFlag===true&&typeof w.rhr==='number'&&typeof w.rhrBaseline==='number'){
+      var hd=(typeof w.rhrDelta==='number'&&w.rhrDelta>0)?(' \u2014 up '+w.rhrDelta+' bpm'):'';
+      lines.push('<b>Resting heart rate up</b> ('+w.rhr+' bpm vs your usual '+w.rhrBaseline+hd+'). Your body is working harder even at rest.');
+    }
+    if(typeof w.hrv==='number'&&typeof w.hrvBaseline==='number'&&w.hrvBaseline>0&&w.hrv<=0.75*w.hrvBaseline){
+      lines.push('<b>HRV well below your usual</b> ('+w.hrv+' vs about '+w.hrvBaseline+'). A sign of stress, poor sleep, or something coming on.');
+    }
+    if(typeof w.spo2==='number'&&w.spo2<93){
+      lines.push('<b>Blood oxygen low</b> ('+w.spo2+'%). Worth a second reading \u2014 see a doctor if it stays down or you feel breathless.');
+    }
+    if(!lines.length) return '';
+    var foot=(lines.length>=2)
+      ? 'Several signals are off together. Treat today as a recovery day \u2014 clinic first, skip the hard walk, early night. If you feel unwell, see a doctor.'
+      : 'Ease off today \u2014 go gentle, rest well tonight, and keep an eye on how you feel.';
+    return '<div class="sl-alarm" role="alert">'
+      +'<div class="sl-alarm-h"><span class="sl-alarm-icon">\u26A0\uFE0F</span> Body alert \u2014 something\u2019s off this morning</div>'
+      +'<div class="sl-alarm-lines">'+lines.map(function(t){return '<div class="sl-alarm-line">'+t+'</div>';}).join('')+'</div>'
+      +'<div class="sl-alarm-foot">'+foot+'</div>'
+      +'</div>';
+  }
   function bodyHeadline(w){
     // ONE line — the single thing that matters this morning. An alarm (possible
     // illness, low/sliding recovery) becomes the headline itself, so nothing
     // important is ever buried. Everything else stays in the detail below.
     var rec=w.recovery, out=[];
-    var illness=(w.respFlag===true&&typeof w.respBaseline==='number');
+    var illness=false; // breathing/HR/HRV/oxygen alerts now handled by bodyAlarm() above
     var falling=(Array.isArray(w.recoveryTrend)&&w.recoveryDir==='falling');
     var shortSleep=(typeof w.sleepHrs==='number'&&w.sleepHrs<5.5);
     if(illness){
@@ -15392,7 +15475,7 @@ body.app-b-active #saumyaLife, body.app-c-active #saumyaLife { display:none !imp
             +(raw3.length?'<div class="sl-raw">'+esc(raw3.join(' · '))+'</div>':'')+'</div>';
       }
       if(!body) body='<div class="sl-blk-s">WHOOP connected — waiting for today’s readout.</div>';
-      return head+body+foot+'</div>';
+      return bodyAlarm()+head+body+foot+'</div>';
     }
     var sm=recoveryState();
     if(!sm.level){
