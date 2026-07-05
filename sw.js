@@ -3,7 +3,7 @@
 // as an installable app (real icon, no browser badge). It does light offline
 // caching of the shell so the app still opens if the network is briefly down.
 
-const CACHE = 'saumya-v8-65';
+const CACHE = 'saumya-v8-72';
 const SHELL = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
@@ -26,6 +26,14 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
+  // Never cache API responses - they carry private health data and a secret in the URL.
+  try {
+    const _u = new URL(req.url);
+    if (_u.pathname.indexOf('/api/') === 0 || _u.pathname.indexOf('/.netlify/') === 0) {
+      event.respondWith(fetch(req));
+      return;
+    }
+  } catch (e) {}
   event.respondWith(
     fetch(req)
       .then((res) => {
