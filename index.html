@@ -6308,13 +6308,13 @@ async function renderWeatherAutomation() {
     const aqiData = getCurrentAQI(data);
     metaEl.style.display = "";
     const sunsetStr = (data.daily && data.daily.sunset) ? data.daily.sunset[useNextDay ? 1 : 0] : null;
-    let sunsetTxt = "\u2014"; if (sunsetStr) { const s3 = new Date(sunsetStr); sunsetTxt = s3.getHours() + ":" + String(s3.getMinutes()).padStart(2, "0"); }
+    let sunsetTxt = "\u2014"; if (sunsetStr) { const s3 = new Date(sunsetStr); const _sh = s3.getHours(); const _sap = _sh >= 12 ? "PM" : "AM"; sunsetTxt = ((_sh % 12) || 12) + ":" + String(s3.getMinutes()).padStart(2, "0") + " " + _sap; }
     let sunriseTxt = "—";
     if (sunriseStr) {
       const s = new Date(sunriseStr);
       const h = s.getHours();
       const m = String(s.getMinutes()).padStart(2, '0');
-      sunriseTxt = `${h}:${m}`;
+      const _ap = h >= 12 ? "PM" : "AM"; sunriseTxt = ((h % 12) || 12) + ":" + m + " " + _ap;
     }
     if (aqiData?.aqi != null) {
       const lbl = aqiToLabel(aqiData.aqi);
@@ -7142,8 +7142,8 @@ function getPranshuMode() {
   // Auto default based on date
   const schoolStarted = todayKey >= SCHEDULE_PHASES.SCHOOL_START_DATE;
   if (schoolStarted) {
-    if (dow === 6) return 'off'; // Sat after school starts = no class
-    return 'school'; // Mon-Fri after Jun 16
+    if (dow === 6) return 'off'; // Saturday = no school
+    return 'school'; // Mon-Fri after Jun 16 (Sunday & govt holidays handled above)
   }
   // Before school starts: Mon-Sat = kids' care
   return 'kids';
@@ -7481,6 +7481,20 @@ function getVisibleSections() {
     baseBlocks = [...MORNING_445, ...evening];     // The 4:45 Life
   } else {
     baseBlocks = [...SUMMER_MORNING, ...evening];  // relaxed summer default
+  }
+
+  // School-day morning (Mon-Fri, non-holiday): the 7:45-8:30 study slot is Pranshu prep + drop
+  if (getLife445Active() && isSchoolDay()) {
+    baseBlocks = baseBlocks.map(function(s){
+      if (s.id === "m445_study") {
+        var _c = {}; for (var _k in s) { _c[_k] = s[_k]; }
+        _c.title = "Get Pranshu ready & school drop";
+        _c.note = "School day - wake him, breakfast, uniform, bag; drop by ~8:30. Study comes after.";
+        _c.tasks = [{ id: "m445_school_prep", label: "Wake Pranshu, breakfast, uniform, bag" }, { id: "m445_school_drop", label: "Drop Pranshu at school (~8:30)" }];
+        return _c;
+      }
+      return s;
+    });
   }
 
   // Away window (9–13 Jun) — routine paused; keep medication sections only.
@@ -15131,7 +15145,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v8.90 · 5-Jul";
+const SAUMYA_BUILD = "v8.92 · 5-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
