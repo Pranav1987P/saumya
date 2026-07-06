@@ -6473,7 +6473,7 @@ const SECTION_TIMES = {
   // The 4:44 Life — early morning
   'm445_wake': [284, 300], 'm445_thyrox': [300, 305], 'm445_dress': [300, 325],
   'm445_walk': [330, 435], 'm445_snack': [435, 465], 'm445_study': [465, 510],
-  'm445_bath': [510, 555], 'm445_breakfast_meds': [555, 585], 'm445_family': [585, 615],
+  'm445_bath': [510, 540], 'm445_breakfast_meds': [540, 570], 'm445_family': [570, 615],
   'm445_leave': [615, 630],
   // Summer (relaxed) morning
   'sm_wake': [480, 510], 'sm_thyrox': [510, 515], 'sm_family': [510, 555],
@@ -6982,7 +6982,7 @@ const MORNING_445 = [
       { id: "m445_study_task", label: "Study session (45 min)" }
     ]
   },
-  { id: "m445_bath", time: "8:30 - 9:15", title: "Bath + skincare + hair",
+  { id: "m445_bath", time: "8:30 - 9:00", title: "Bath + skincare + hair",
     note: "Your window for bath, skincare, hair. Oil on Saturday, wash on Sunday.",
     tasks: [
       { id: "m445_bath_task", label: "Take bath (use Actamo face wash)" },
@@ -6996,7 +6996,7 @@ const MORNING_445 = [
       { id: "m445_dress_ready", label: "Get ready" }
     ]
   },
-  { id: "m445_breakfast_meds", time: "9:15 - 9:45", title: "💊 Breakfast + after-breakfast meds",
+  { id: "m445_breakfast_meds", time: "9:00 - 9:30", title: "💊 Breakfast + after-breakfast meds",
     medsSection: true, vitdSection: true,
     note: "Proper breakfast now, then meds after eating. Probiotic not with hot drinks (cool 30 min first).",
     tasks: [
@@ -7008,7 +7008,7 @@ const MORNING_445 = [
       { id: "med_shilajit", label: "Shilajit — 1 cap" }
     ]
   },
-  { id: "m445_family", time: "9:45 - 10:15", title: "Pranshu + Shweta time",
+  { id: "m445_family", time: "9:30 - 10:15", title: "Pranshu + Shweta time",
     note: "Family time before you leave. Unhurried.",
     tasks: [
       { id: "m445_family_task", label: "Time with Pranshu + Shweta" }
@@ -7521,7 +7521,7 @@ function getVisibleSections() {
       if (s.id === "m445_family") {
         var _c2 = {}; for (var _k2 in s) { _c2[_k2] = s[_k2]; }
         _c2.title = "Study (Implants / journals)";
-        _c2.note = "Pranshu is at school - your 30 min for implants, zygoma reading, or case notes before clinic.";
+        _c2.note = "Pranshu is at school - your 45 min for implants, zygoma reading, or case notes before clinic.";
         _c2.tasks = [{ id: "m445_study_task", label: "Study implants / read a case / journal" }];
         return _c2;
       }
@@ -15200,7 +15200,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v8.99 · 5-Jul";
+const SAUMYA_BUILD = "v9.0 · 5-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
