@@ -7518,6 +7518,13 @@ function getVisibleSections() {
         _c.tasks = [{ id: "m445_school_prep", label: "Wake Pranshu, breakfast, uniform, bag" }, { id: "m445_school_drop", label: "Drop Pranshu at school (~8:30)" }];
         return _c;
       }
+      if (s.id === "m445_family") {
+        var _c2 = {}; for (var _k2 in s) { _c2[_k2] = s[_k2]; }
+        _c2.title = "Study (Implants / journals)";
+        _c2.note = "Pranshu is at school - your 30 min for implants, zygoma reading, or case notes before clinic.";
+        _c2.tasks = [{ id: "m445_study_task", label: "Study implants / read a case / journal" }];
+        return _c2;
+      }
       return s;
     });
   }
@@ -7531,7 +7538,7 @@ function getVisibleSections() {
   // v8.25: meds + the morning family block now live in dedicated cards — drop their duplicates from the schedule
   var SAUMYA_MED_IDS = ["med_thyrox","med_linvas","med_rosumac","med_calcimax","med_probiotic","med_shilajit","med_melato"];
   baseBlocks = baseBlocks
-    .filter(function(s){ return s.id !== "m445_family"; })
+    .filter(function(s){ return s.id !== "m445_family" || (getLife445Active() && isSchoolDay()); })
     .map(function(s){ var _t=(s.tasks||[]).filter(function(x){ return SAUMYA_MED_IDS.indexOf(x.id)===-1; }); var _c={}; for(var _k in s){_c[_k]=s[_k];} _c.tasks=_t; return _c; })
     .filter(function(s){ return s.tasks && s.tasks.length>0; });
   return baseBlocks
@@ -15193,7 +15200,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v8.98 · 5-Jul";
+const SAUMYA_BUILD = "v8.99 · 5-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
