@@ -8572,27 +8572,30 @@ document.addEventListener('click', function (e) {
 function checkVitdAlert(){
   var el = document.getElementById('alertPop'); if (!el) return;
   var today = new Date(); var todayKey = today.toISOString().slice(0,10);
-  if (state.vitdSnooze && todayKey < state.vitdSnooze) return;
+  if (state.vitdSnoozeUntil && Date.now() < state.vitdSnoozeUntil) return;
   if (state.vitdLastTaken === todayKey) return;
-  var done = state.vitdDosesDone || 0; var due = false, title = '', msg = '';
+  var done = state.vitdDosesDone || 0; var due = false, title = '', msg = '', laterLbl = '', phase = 'loading';
   if (done < 3) {
     due = true; title = 'Vitamin D - dose ' + (done + 1) + ' of 3';
-    msg = 'Take your Uprise D3 60000 capsule today (3 days in a row, then once a week). Stays until you tap Taken.';
+    msg = 'Take your Uprise D3 60000 capsule now if you can - this is a loading dose, best taken today.';
+    laterLbl = 'Remind me in a few hours'; phase = 'loading';
   } else if (!state.vitdLastTaken || (today - new Date(state.vitdLastTaken)) / 86400000 >= 7) {
     due = true; title = 'Vitamin D - this week';
     msg = 'Take your weekly Uprise D3 60000 capsule. Easy to miss - stays until you tap Taken.';
+    laterLbl = 'Remind me tomorrow'; phase = 'weekly';
   }
   if (due) {
-    var t = document.getElementById('alertPopTitle'), m = document.getElementById('alertPopMsg');
-    if (t) t.textContent = title; if (m) m.textContent = msg;
+    var t = document.getElementById('alertPopTitle'), m = document.getElementById('alertPopMsg'), l = document.getElementById('alertPopLater');
+    if (t) t.textContent = title; if (m) m.textContent = msg; if (l) l.textContent = laterLbl;
+    el.setAttribute('data-vitd-phase', phase);
     el.hidden = false; el.setAttribute('aria-hidden','false');
   }
 }
 (function(){
   function wire(){
     var y = document.getElementById('alertPopYes'), l = document.getElementById('alertPopLater'), el = document.getElementById('alertPop');
-    if (y) y.addEventListener('click', function(){ state.vitdLastTaken = new Date().toISOString().slice(0,10); if ((state.vitdDosesDone || 0) < 3) state.vitdDosesDone = (state.vitdDosesDone || 0) + 1; state.vitdSnooze = null; try{saveState();}catch(e){} if(el){el.hidden=true;el.setAttribute('aria-hidden','true');} });
-    if (l) l.addEventListener('click', function(){ var t = new Date(); t.setDate(t.getDate()+1); state.vitdSnooze = t.toISOString().slice(0,10); try{saveState();}catch(e){} if(el){el.hidden=true;el.setAttribute('aria-hidden','true');} });
+    if (y) y.addEventListener('click', function(){ state.vitdLastTaken = new Date().toISOString().slice(0,10); if ((state.vitdDosesDone || 0) < 3) state.vitdDosesDone = (state.vitdDosesDone || 0) + 1; state.vitdSnoozeUntil = 0; try{saveState();}catch(e){} if(el){el.hidden=true;el.setAttribute('aria-hidden','true');} });
+    if (l) l.addEventListener('click', function(){ var ph = el.getAttribute('data-vitd-phase') || 'loading'; state.vitdSnoozeUntil = Date.now() + (ph === 'weekly' ? 86400000 : 14400000); try{saveState();}catch(e){} if(el){el.hidden=true;el.setAttribute('aria-hidden','true');} });
     try{ checkVitdAlert(); }catch(e){}
   }
   if (document.readyState !== 'loading') wire(); else document.addEventListener('DOMContentLoaded', wire);
@@ -15246,7 +15249,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v9.9 · 5-Jul";
+const SAUMYA_BUILD = "v10.0 · 5-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
