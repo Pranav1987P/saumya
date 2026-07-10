@@ -8582,12 +8582,46 @@ function vitdDueInfo(){
   if (!state.vitdLastTaken || (today - new Date(state.vitdLastTaken))/86400000 >= 7) return { due:true, label:'Vitamin D - weekly capsule due' };
   return { due:false };
 }
+function labNudgeInfo(){
+  try {
+    var recs = (state.labRecords || []).slice().sort(function(a,b){ return a.date < b.date ? 1 : -1; });
+    if (!recs.length) return { due:false };
+    var nd = labNextDue(recs);
+    if (!nd) return { due:false };
+    var todayKey = new Date().toISOString().slice(0,10);
+    if (state.labNudgeSnoozeDate === todayKey) return { due:false };
+    if (nd.days < 0) return { due:true, level:'overdue', label:'Blood tests overdue - were due ~' + labChipLabel(nd.iso) };
+    if (nd.days <= 10) return { due:true, level:'soon', label:'Blood tests due ~' + labChipLabel(nd.iso) + (nd.days === 0 ? ' (today)' : ' (' + nd.days + (nd.days === 1 ? ' day)' : ' days)')) };
+    return { due:false };
+  } catch(e){ return { due:false }; }
+}
+function weightNudgeInfo(){
+  try {
+    var w = state.weight || {};
+    var todayKey = new Date().toISOString().slice(0,10);
+    if (w[todayKey] != null) return { due:false };
+    var keys = Object.keys(w).sort();
+    if (!keys.length) return { due:true, label:'Weigh in - no weight logged yet' };
+    var last = keys[keys.length-1];
+    var days = Math.round((new Date(todayKey+'T12:00:00') - new Date(last+'T12:00:00'))/86400000);
+    if (days >= 14) return { due:true, label:'Weigh in - last logged ' + labChipLabel(last) + ' (' + days + ' days ago)' };
+    return { due:false };
+  } catch(e){ return { due:false }; }
+}
 function renderTodayNotice(){
   var card = document.getElementById('todayNotice'), list = document.getElementById('todayNoticeList');
   if (!card || !list) return;
   var items = [];
   var vd = vitdDueInfo();
   if (vd.due) items.push('<div class="tn-item"><span class="tn-txt">' + vd.label + '</span><button type="button" class="tn-btn" data-tn="vitd">Taken</button></div>');
+  try {
+    var lb = labNudgeInfo();
+    if (lb && lb.due) items.push('<div class="tn-item"><span class="tn-txt">' + lb.label + '</span><button type="button" class="tn-btn" data-tn="lab">Got it</button></div>');
+  } catch(e){}
+  try {
+    var wn = weightNudgeInfo();
+    if (wn && wn.due) items.push('<div class="tn-item"><span class="tn-txt">' + wn.label + '</span><button type="button" class="tn-btn" data-tn="weight">Log</button></div>');
+  } catch(e){}
   if (items.length) { list.innerHTML = items.join(''); card.hidden = false; card.setAttribute('aria-hidden','false'); }
   else { card.hidden = true; card.setAttribute('aria-hidden','true'); }
 }
@@ -8598,10 +8632,15 @@ function vitdMarkTaken(){
   try{saveState();}catch(e){}
   var pop = document.getElementById('alertPop'); if (pop) { pop.hidden = true; pop.setAttribute('aria-hidden','true'); }
   renderTodayNotice();
+  if (typeof renderAll === 'function') { try{ renderAll(); }catch(_e){} }
 }
 document.addEventListener('click', function(e){
   var b = e.target.closest && e.target.closest('[data-tn]');
-  if (b && b.getAttribute('data-tn') === 'vitd') { e.preventDefault(); vitdMarkTaken(); }
+  if (!b) return;
+  var tn = b.getAttribute('data-tn');
+  if (tn === 'vitd') { e.preventDefault(); vitdMarkTaken(); }
+  else if (tn === 'lab') { e.preventDefault(); try{ state.labNudgeSnoozeDate = new Date().toISOString().slice(0,10); saveState(); }catch(_e){} try{ renderTodayNotice(); }catch(_e){} }
+  else if (tn === 'weight') { e.preventDefault(); try{ var _w=prompt('Your weight in kg:',''); if(_w!=null){ var _n=parseFloat(_w); if(!isNaN(_n) && _n>20 && _n<300){ if(typeof slSaveWeight==='function'){ slSaveWeight(_n); } else { if(!state.weight) state.weight={}; state.weight[new Date().toISOString().slice(0,10)]=_n; saveState(); } } } }catch(_e){} try{ renderTodayNotice(); }catch(_e){} try{ if(typeof render==='function') render(); }catch(_e){} }
 });
 function checkVitdAlert(){
   var el = document.getElementById('alertPop'); if (!el) return;
@@ -15284,7 +15323,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v10.1 · 5-Jul";
+const SAUMYA_BUILD = "v10.4 - 10-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
@@ -16117,29 +16156,40 @@ body.app-b-active #saumyaLife, body.app-c-active #saumyaLife { display:none !imp
     save(VITD_KEY,st); renderAll(); if(typeof render==='function'){ try{render();}catch(e){} }
   }
   function vitdSection(){
-    var st=vitdState();
-    if(!st.started){
-      return '<div class="sl-vitd"><div class="sl-vitd-line"><span class="sl-vitd-name">Vitamin D (Uprise D3)</span>'
-        +'<span class="sl-vitd-status">not started</span></div>'
-        +'<button class="sl-vitd-btn" data-sl-vitd="start">Start the course today</button>'
-        +'<div class="sl-vitd-hint">3 days in a row, then once a week for 12 weeks. Only shows up on dose days.</div></div>';
+    var todayK=(new Date()).toISOString().slice(0,10);
+    var done=state.vitdDosesDone||0;
+    var takenToday=(state.vitdLastTaken===todayK);
+    if(done<3){
+      if(takenToday){
+        return '<div class="sl-vitd"><div class="sl-row on">'
+          +'<span class="sl-box">✓</span>'
+          +'<span class="sl-txt"><span class="sl-name">Vitamin D (Uprise D3)</span>'
+          +'<span class="sl-note">loading dose '+done+' of 3 - done today</span></span></div></div>';
+      }
+      return '<div class="sl-vitd"><div class="sl-row" data-sl-vitd="take">'
+        +'<span class="sl-box"></span>'
+        +'<span class="sl-txt"><span class="sl-name">Vitamin D (Uprise D3)</span>'
+        +'<span class="sl-note">loading dose '+(done+1)+' of 3 - take today</span></span></div>'
+        +'<div class="sl-vitd-hint">3 loading doses, counted as you take them. Miss a day and it just waits here - nothing is lost.</div></div>';
     }
-    var dfs=daysBetween(st.startDate,dayKey()); if(dfs<0) dfs=0;
-    var isDue=VITD_DUE.indexOf(dfs)>=0, done=!!st.taken[dayKey()], sub;
-    if(dfs<=2){ sub='loading dose '+(dfs+1)+' of 3 · today'; } else { sub='weekly dose '+((dfs-2)/7)+' of 12 · today'; }
-    if(isDue){
-      return '<div class="sl-vitd"><div class="sl-row'+(done?' on':'')+'" data-sl-vitd="take">'
-        +'<span class="sl-box">'+(done?'✓':'')+'</span>'
-        +'<span class="sl-txt"><span class="sl-name">Vitamin D (Uprise D3)</span><span class="sl-note">'+sub+'</span></span></div></div>';
+    var last=state.vitdLastTaken?new Date(state.vitdLastTaken+'T12:00:00'):null;
+    var daysSince=last?Math.floor(((new Date(todayK+'T12:00:00'))-last)/86400000):999;
+    if(takenToday){
+      return '<div class="sl-vitd"><div class="sl-row on">'
+        +'<span class="sl-box">✓</span>'
+        +'<span class="sl-txt"><span class="sl-name">Vitamin D (Uprise D3)</span>'
+        +'<span class="sl-note">dose done today</span></span></div></div>';
     }
-    var next=null; for(var i=0;i<VITD_DUE.length;i++){ if(VITD_DUE[i]>dfs){ next=VITD_DUE[i]; break; } }
-    if(next===null){
-      return '<div class="sl-vitd"><div class="sl-vitd-line"><span class="sl-vitd-name">Vitamin D — course complete 🎉</span>'
-        +'<button class="sl-vitd-mini" data-sl-vitd="reset">restart</button></div></div>';
+    if(daysSince>=7){
+      return '<div class="sl-vitd"><div class="sl-row" data-sl-vitd="take">'
+        +'<span class="sl-box"></span>'
+        +'<span class="sl-txt"><span class="sl-name">Vitamin D (Uprise D3)</span>'
+        +'<span class="sl-note">weekly dose - take today</span></span></div></div>';
     }
-    return '<div class="sl-vitd"><div class="sl-vitd-line"><span class="sl-vitd-name">Vitamin D</span>'
-      +'<span class="sl-vitd-status">next dose '+esc(addDays(st.startDate,next))+'</span>'
-      +'<button class="sl-vitd-mini" data-sl-vitd="reset">reset</button></div></div>';
+    var nextD=last?new Date(last.getTime()+7*86400000):null;
+    var nextStr=nextD?nextD.toISOString().slice(0,10):'';
+    return '<div class="sl-vitd"><div class="sl-vitd-line"><span class="sl-vitd-name">Vitamin D (Uprise D3)</span>'
+      +'<span class="sl-vitd-status">next dose '+esc(nextStr)+'</span></div></div>';
   }
 
   function sectionMeds(){ return '<div class="sl-card"><div class="sl-h">💊 Medicines</div>'+checklist(MED_KEY,[MEDS.morning,MEDS.night])
@@ -16413,7 +16463,7 @@ body.app-b-active #saumyaLife, body.app-c-active #saumyaLife { display:none !imp
     else if((x=e.target.closest('[data-sl-recovery]'))){ setRecovery(x.getAttribute('data-sl-recovery')); }
     else if((x=e.target.closest('[data-sl-imp]'))){ impAction(x.getAttribute('data-sl-imp')); }
     else if((x=e.target.closest('[data-sl-weight]'))){ var wi=document.getElementById('slWeightInput'); if(wi){ var wv=parseFloat(wi.value); if(!isNaN(wv)&&wv>=30&&wv<=200){ if(typeof slSaveWeight==='function') slSaveWeight(wv); renderAll(); } } }
-    else if((x=e.target.closest('[data-sl-vitd]'))){ vitdAction(x.getAttribute('data-sl-vitd')); }
+    else if((x=e.target.closest('[data-sl-vitd]'))){ var _va=x.getAttribute('data-sl-vitd'); if(_va==='take'){ if(typeof vitdMarkTaken==='function'){ try{vitdMarkTaken();}catch(_e){} } try{renderAll();}catch(_e){} } else { vitdAction(_va); } }
     else if((x=e.target.closest('[data-sl-implog]'))){ var a2=x.getAttribute('data-sl-implog'); if(a2==='add'){ implantLogAdd(); } else if(a2&&a2.indexOf('del:')===0){ implantLogRemove(parseInt(a2.split(':')[1],10)); } }
     else if((x=e.target.closest('[data-sl-impspot]'))){ implantSpotRefresh(); }
     else if((x=e.target.closest('[data-sl-pm]'))){ loadPubmed(true); }
