@@ -7010,7 +7010,7 @@ const MORNING_445 = [
     ]
   },
   { id: "m445_walk", time: "5:10 - 5:55", title: "Walk 🚶", walkSection: true,
-    note: "Leave by 5:10, back by 5:55. A shorter, nearby route on weekdays — protects the study and meditation that follow.",
+    note: "Leave by 5:10, back by 5:55. Narsingh Nath Mandir — protects the study and meditation that follow.",
     tasks: [
       { id: "walk_done", label: "Walk completed 🚶" }
     ]
@@ -7618,7 +7618,7 @@ function getVisibleSections() {
       .map(function(s){
         if (s.id === "m445_walk") {
           var _w = {}; for (var _k3 in s) { _w[_k3] = s[_k3]; }
-          _w.time = "5:10 onward"; _w.note = "Sunday - the long one. 1.5 to 2 hours, no rush. Free after.";
+          _w.time = "5:10 onward"; _w.note = "Sunday - the long one, to Mahadev Ghat Mahadev Mandir. 1.5 to 2 hours, no rush. Free after.";
           return _w;
         }
         return s;
@@ -15389,7 +15389,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v10.10 · 5-Jul";
+const SAUMYA_BUILD = "v10.11 · 5-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
