@@ -34,6 +34,13 @@
 @property --aura-amber  { syntax: '<number>'; inherits: true; initial-value: 0.08; }
 @property --aura-violet { syntax: '<number>'; inherits: true; initial-value: 0.10; }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+/* Stop a stray tap selecting text - that selection is what triggers Chrome's
+   "tap to see search results" popup. Anything you type in, or would want to
+   copy out of, is re-enabled below. */
+body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+input, textarea, select, [contenteditable], .hg-quote, .mantra-sans, .mantra-translit,
+.mantra-meaning, .jr-text, .note-text, .sl-note {
+  -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
 :root {
   --bg: #0a0f1e; --bg-2: #0d1b2a;
   --card: rgba(12, 18, 30, 0.55);
@@ -15994,7 +16001,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v10.48 · 18-Jul";
+const SAUMYA_BUILD = "v10.49 · 18-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
