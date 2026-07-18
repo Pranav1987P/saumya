@@ -570,19 +570,26 @@ body.app-b-active #anniversaryCard { display: none !important; }
   position: relative;
   overflow: hidden;
   border: none !important;
-  background: linear-gradient(135deg, #eef1f5 0%, #c9d0da 17%, #f6f8fb 37%, #aeb8c6 58%, #e2e7ed 80%, #bcc4d0 100%) !important;
+  background: linear-gradient(135deg, #2e1650 0%, #1a0d30 26%, #3a1c60 52%, #170b2b 76%, #2a1449 100%) !important;
+  border: 1px solid rgba(251,191,36,0.34) !important;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.95),
-    inset 0 -2px 5px rgba(120,130,148,0.45),
-    0 6px 18px rgba(0,0,0,0.35);
+    inset 0 1px 0 rgba(251,191,36,0.18),
+    inset 0 -3px 10px rgba(0,0,0,0.55),
+    0 4px 20px rgba(76,29,149,0.34);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 /* moving sheen — light sweeping across the metal */
-#life445Toggle.life445-silver::before {
+#life445Toggle.l445-title{display:flex;align-items:baseline;gap:7px;}
+.l445-word{font-size:10.5px;font-weight:800;letter-spacing:3.2px;
+  color:rgba(230,220,255,.75);}
+.l445-num{font-size:27px;font-weight:900;letter-spacing:.5px;line-height:1;
+  color:#f8d98d;text-shadow:0 0 16px rgba(251,191,36,.5),0 2px 3px rgba(0,0,0,.6);
+  font-variant-numeric:tabular-nums;}
+.life445-silver::before {
   content: "";
   position: absolute; top: -60%; bottom: -60%; left: -40%;
   width: 38%;
-  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(90deg, rgba(251,215,150,0) 0%, rgba(251,215,150,0.26) 50%, rgba(251,215,150,0) 100%);
   transform: skewX(-18deg);
   filter: blur(2px);
   z-index: 0;
@@ -611,7 +618,7 @@ body.app-b-active #anniversaryCard { display: none !important; }
 /* satisfying press — the tile depresses into the metal */
 #life445Toggle.life445-silver:active {
   transform: scale(0.974);
-  box-shadow: inset 0 2px 7px rgba(110,122,140,0.6), inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 8px rgba(0,0,0,0.3);
+  box-shadow: inset 0 2px 9px rgba(0,0,0,0.6), inset 0 1px 0 rgba(251,191,36,0.12), 0 2px 8px rgba(0,0,0,0.35);
 }
 @media (prefers-reduced-motion: reduce) {
   #life445Toggle.life445-silver::before,
@@ -5015,8 +5022,8 @@ body.app-c-active .app-b { display: none !important; }
       display:flex; align-items:center; justify-content:space-between; gap:10px;
       color:var(--text); font-family:inherit; text-align:left;">
     <span style="display:flex; flex-direction:column; line-height:1.25; position:relative; z-index:1;">
-      <span id="life445Title" style="font-size:16px; font-weight:800; color:#5b21b6; letter-spacing:0.2px; text-shadow:0 1px 0 rgba(255,255,255,0.55);">The 4:44 Life</span>
-      <span id="life445Sub" style="font-size:11.5px; color:#4a5568;"></span>
+      <span id="life445Title" class="l445-title"><span class="l445-word">THE</span><span class="l445-num">4:44</span><span class="l445-word">LIFE</span></span>
+      <span id="life445Sub" style="font-size:11.5px; color:rgba(226,214,255,0.72); letter-spacing:0.2px;"></span>
     </span>
     <span id="life445Pill" style="flex-shrink:0; position:relative; z-index:1; font-size:12px; font-weight:800; padding:6px 13px; border-radius:999px;"></span>
   </div>
@@ -5735,6 +5742,10 @@ body.app-c-active .app-b { display: none !important; }
 
   <div id="nowCardSlot"></div>
 
+  <div id="clinicDayNote"></div>
+
+  <div id="guidanceSlot"></div>
+
   <div id="saumyaLife"></div>
 
   <!-- v8: steering companion — one gentle line driven by movement events
@@ -5754,6 +5765,8 @@ body.app-c-active .app-b { display: none !important; }
     </div>
     <div class="motivation" id="motivation">Your day awaits.</div>
   </section>
+
+  <div id="dayShape"></div>
 
   <div class="wake-card" id="wakeCard"></div>
 
@@ -7010,9 +7023,10 @@ const MORNING_445 = [
     ]
   },
   { id: "m445_walk", time: "5:10 - 5:55", title: "Walk 🚶", walkSection: true,
-    note: "Leave by 5:10, back by 5:55. Narsingh Nath Mandir — protects the study and meditation that follow.",
+    note: "Leave by 5:10, back by 5:55. Narsingh Nath Mandir — protects the study and meditation that follow. Headphones are already on you: this is the one 45-minute block where your hands and eyes are free, so the lifestyle series rides along here instead of costing a separate half hour.",
     tasks: [
-      { id: "walk_done", label: "Walk completed 🚶" }
+      { id: "walk_done", label: "Walk completed 🚶" },
+      { id: "walk_audio", label: "Lifestyle / learning series — 30 min while walking" }
     ]
   },
   { id: "m445_study", time: "6:45 - 7:30", title: "Study",
@@ -7200,6 +7214,394 @@ function getActiveSchedule() {
   if (m === "setup") return SETUP_DAY;
   if (m === "launch") return LAUNCH_DAY;
   return REGULAR;
+}
+
+
+
+
+
+// ========== DAY SHAPE — honest about what was reachable ==========
+// The 4:44 morning is a chain. Wake at 10 and six blocks have already expired
+// before your eyes open. Scoring the day against them is not discipline, it is
+// just a wrong denominator — it reports failure for hours spent asleep.
+// So: score what was reachable, and state what wasn't. Plainly, once, no colour.
+function getWakeMins() {
+  const w = (typeof _todayEvt === 'function') ? _todayEvt('woke_up') : null;
+  if (!w || !w.ts) return null;
+  const d = new Date(w.ts);
+  return d.getHours() * 60 + d.getMinutes();
+}
+// A block is 'passed' only if its window had already closed when he woke.
+function sectionPassedBeforeWake(id) {
+  const wake = getWakeMins();
+  if (wake === null) return false;              // no wake logged → assume nothing
+  const r = (typeof getSectionRange === 'function') ? getSectionRange(id) : null;
+  if (!r) return false;
+  return r[1] <= wake;
+}
+function getDayShape() {
+  const wake = getWakeMins();
+  let reachable = 0, passed = 0, passedBlocks = 0;
+  const todayStr = today();
+  for (const s of getVisibleSections()) {
+    const n = s.journal ? 1 : s.sleepButton ? 1
+      : s.tasks.filter(t => (!t.until || t.until >= todayStr) && (!t.from || t.from <= todayStr)).length;
+    if (sectionPassedBeforeWake(s.id)) { passed += n; passedBlocks++; }
+    else reachable += n;
+  }
+  return { wake, reachable, passed, passedBlocks };
+}
+function renderDayShape() {
+  const slot = $("dayShape");
+  if (!slot) return;
+  if (document.body.classList.contains('app-b-active') ||
+      document.body.classList.contains('app-c-active')) { slot.innerHTML = ''; return; }
+  const d = getDayShape();
+  if (!d.passedBlocks) { slot.innerHTML = ''; return; }
+  const hh = Math.floor(d.wake / 60), mm = d.wake % 60;
+  const ap = hh >= 12 ? 'PM' : 'AM', h12 = (hh % 12) || 12;
+  slot.innerHTML =
+    '<div class="ds-line">' +
+      d.passedBlocks + ' block' + (d.passedBlocks === 1 ? '' : 's') +
+      ' had already passed when you woke at ' + h12 + ':' + String(mm).padStart(2,'0') + ' ' + ap +
+      '. Today is scored on the ' + d.reachable + ' that were still open.' +
+    '</div>';
+}
+
+// ========== MACRO HEALTH ==========
+// MacroDroid on ColorOS dies quietly: a permission downgrade or a battery-optimiser
+// sweep kills the triggers and nothing announces it. The walk macros died on 27 June
+// and were only noticed much later. This watches the event stream itself, so a dead
+// chain surfaces in days instead of weeks.
+function getMacroHealth() {
+  const log = state.saumyaLog || {};
+  let lastAny = null;
+  for (const k of Object.keys(log)) {
+    for (const e of (log[k] || [])) {
+      if (e && e.ts && (lastAny === null || e.ts > lastAny)) lastAny = e.ts;
+    }
+  }
+  if (lastAny === null) return { status: 'none' };
+  const DAY = 86400000;
+  const dAny = Math.floor((Date.now() - lastAny) / DAY);
+  // Nothing of any kind for 3+ days → the whole MacroDroid → Netlify chain is down.
+  if (dAny >= 3) return { status: 'dead', days: dAny };
+
+  // A silent clinic trigger and simply not going to the clinic look identical if you
+  // only count missing arrivals — so don't. Only suspect the trigger when there is
+  // positive evidence he left the house in a commute window and no arrival followed.
+  // Three separate days before saying anything: a false alarm here costs more than
+  // a late one.
+  let mismatch = 0;
+  const keys = Object.keys(log).sort().slice(-14);
+  for (const k of keys) {
+    const day = log[k] || [];
+    const left = day.find(e => {
+      if (e.eventKey !== 'left_home' || !e.ts) return false;
+      const hr = new Date(e.ts).getHours();
+      return hr >= 7 && hr < 14;
+    });
+    if (left && !day.some(e => e.eventKey === 'arrived_clinic')) mismatch++;
+  }
+  if (mismatch >= 3) return { status: 'clinic', days: mismatch };
+  return { status: 'ok' };
+}
+
+
+// The tap that says "I did go in" now writes a REAL arrival event, not just a flag,
+// so attendance history survives a dead macro instead of going blank.
+function confirmWentToClinic() {
+  const k = today();
+  const now = new Date();
+  const cur = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+  showTimePicker('What time did you reach the clinic?', cur, (t) => {
+    if (!t) return;
+    const m = t.match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return;
+    const hh = parseInt(m[1], 10), mm = parseInt(m[2], 10);
+    if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return;
+    if (!state.saumyaLog) state.saumyaLog = {};
+    if (!state.saumyaLog[k]) state.saumyaLog[k] = [];
+    if (!state.saumyaLog[k].some(e => e.eventKey === 'arrived_clinic')) {
+      state.saumyaLog[k].push({
+        eventKey: 'arrived_clinic',
+        ts: clinicMakeTimestamp(k, hh, mm),
+        time: clinicFormatTime(hh, mm),
+        msg: 'Arrived at clinic (entered by hand)'
+      });
+    }
+    setClinicDay('clinic');
+  });
+}
+
+// ========== CLINIC-DAY AWARENESS ==========
+// The schedule used to march through "Leave for clinic" / "Reach home" purely on
+// the clock, even on days Pranav never went. Now the day is read from real events.
+//   'clinic'  — arrived_clinic logged today (or manually confirmed)
+//   'home'    — Sunday, manually set, or past 1 PM with no arrival
+//   'unknown' — too early to tell; assume nothing, change nothing
+function getClinicDayState() {
+  const k = today();
+  if (state.clinicDayOverride && state.clinicDayOverride[k]) return state.clinicDayOverride[k];
+  if (typeof isSunday === 'function' && isSunday()) return 'home';
+  if (typeof _todayEvt === 'function' && _todayEvt('arrived_clinic')) return 'clinic';
+  return (new Date().getHours() >= 13) ? 'home' : 'unknown';
+}
+function setClinicDay(v) {
+  if (!state.clinicDayOverride) state.clinicDayOverride = {};
+  state.clinicDayOverride[today()] = v;
+  saveState();
+  render();
+}
+// Was 'home' inferred rather than told to us? Then say so, and let him correct it.
+function isClinicDayInferred() {
+  const k = today();
+  if (state.clinicDayOverride && state.clinicDayOverride[k]) return false;
+  if (typeof isSunday === 'function' && isSunday()) return false;
+  return getClinicDayState() === 'home';
+}
+function renderClinicDayNote() {
+  const slot = $("clinicDayNote");
+  if (!slot) return;
+  if (document.body.classList.contains('app-b-active') ||
+      document.body.classList.contains('app-c-active')) { slot.innerHTML = ''; return; }
+
+  const mh = getMacroHealth();
+  if (mh.status === 'dead' || mh.status === 'clinic') {
+    const msg = (mh.status === 'dead')
+      ? 'No phone events at all for ' + mh.days + ' days. The MacroDroid link looks down, not just one macro.'
+      : 'On ' + mh.days + ' days you left home in the morning and no clinic arrival followed. The clinic trigger may not be firing.';
+    slot.innerHTML =
+      '<div class="cdn-card cdn-warn">' +
+        '<div class="cdn-txt"><b>Check MacroDroid.</b> ' + escapeHtml(msg) +
+        ' First thing to look at: Location permission must be <b>Allow all the time</b>, not "while using".</div>' +
+        '<button class="cdn-btn" id="cdnLogArrival">Log today by hand</button>' +
+      '</div>';
+    const lb = $("cdnLogArrival");
+    if (lb) lb.onclick = () => confirmWentToClinic();
+    return;
+  }
+
+  if (!isClinicDayInferred()) { slot.innerHTML = ''; return; }
+  slot.innerHTML =
+    '<div class="cdn-card">' +
+      '<div class="cdn-txt">No clinic arrival logged today &mdash; showing this as a day at home.</div>' +
+      '<button class="cdn-btn" id="cdnWasClinic">I did go in</button>' +
+    '</div>';
+  const b = $("cdnWasClinic");
+  if (b) b.onclick = () => confirmWentToClinic();
+}
+
+// ========== HER GUIDANCE — time-driven ==========
+// From the 64-min conversation of 18 July 2026. Her words, not paraphrase.
+// Deliberately NOT a checklist: nothing to tick, nothing to fail, no streak.
+// One line at a time, matched to what is actually happening at that hour.
+// Ids (H-/F-/K-/P-/L-/T-) map to the master list of 79 suggestions.
+const HER_GUIDANCE = [
+  { from:"04:44", to:"05:10", tag:"On waking", lines:[
+    { id:"T-02", t:"Don't think about whether it's possible. If you want to start doing it, it will happen." },
+    { id:"T-03", t:"You start seeing changes from the day you start." },
+    { id:"T-01", t:"If you are not ready to work on the first step, how will you find the solution for the next?" },
+    { id:"F-03", t:"The only solution is to be strong." },
+    { id:"H-20", t:"You have to fix the house." }
+  ]},
+  { from:"05:10", to:"05:55", tag:"On the walk", lines:[
+    { id:"F-05", t:"The future does not exist. It is free will. Whatever future exists will be decided by your actions." },
+    { id:"L-04", t:"Thirty minutes of someone confident and enthusiastic in your ears beats thirty minutes of scrolling. Don't be with depressing people — that includes the ones on a screen." },
+    { id:"F-04", t:"You are afraid of your future." },
+    { id:"K-04", t:"You were scared the first time you rode a cycle. Now you are not. When you know something, you stop being scared." },
+    { id:"P-02", t:"Yoga tells us our consciousness is connected to the field around us. You have to make that connection." },
+    { id:"F-13", t:"The internet is full of people in your field. Use it to find the ones worth learning from." }
+  ]},
+  { from:"05:55", to:"06:25", tag:"Getting ready", lines:[
+    { id:"F-01", t:"You will have to show care for your psychological health." },
+    { id:"P-01", t:"Develop a little bit of positivity." },
+    { id:"P-03", t:"Ashtanga Yoga. Practise it slowly. Slowly." }
+  ]},
+  { from:"06:25", to:"06:45", tag:"Her first point", lines:[
+    { id:"L-01", t:"Give yourself ten to fifteen minutes to sit in peace. That time you can take music therapy." },
+    { id:"P-04", t:"Listen to any good music. Calm your mind. Then Om jaap for ten minutes." },
+    { id:"P-05", t:"During the jaap, don't think about anything. Keep it blank. Keep it void." },
+    { id:"L-02", t:"Try it. It won't happen at first — I assure you. If you sit for ten minutes you will think too much. That is expected." }
+  ]},
+  { from:"06:45", to:"07:30", tag:"On study", lines:[
+    { id:"K-03", t:"The more knowledge you have, the one who is scared will be finished." },
+    { id:"K-01", t:"This fear you will have to leave. You need to gain knowledge. Start studying." },
+    { id:"K-06", t:"The knowledge of the doctors, the knowledge of the field, the knowledge of the spiritual — start to gain all three." },
+    { id:"K-07", t:"You don't have to become a saint to attain God. At least learn how to live as a human. That you learn from spiritual knowledge." },
+    { id:"K-02", t:"Have you read your Bhagavad Gita? You start. You will get a peak in that." },
+    { id:"X-03", t:"There is a writer called Dale Carnegie. My father recommended him — he has seen a lot of tough life. If a person wants to be psychologically strong, he can read his book." }
+  ]},
+  { from:"07:30", to:"08:30", tag:"With the family", lines:[
+    { id:"H-27", t:"They need attention. Some people need attention. They don't get attention. That's why there is any major issue." },
+    { id:"H-06", t:"You have to show a little. Not only feel it." },
+    { id:"H-31", t:"Maturity is when you realise that not everybody is mature. Everyone doesn't think like you." },
+    { id:"H-01", t:"Let's see the problem first. Then we will see the solution." },
+    { id:"H-03", t:"So be calm." },
+    { id:"H-04", t:"Sometimes you need to be patient. That doesn't mean not making your point." },
+    { id:"H-05", t:"One is the need of good communication." },
+    { id:"H-08", t:"Sometimes you should also listen to the other person." },
+    { id:"H-37", t:"Parents of that generation don't understand it so quickly. Allow for that." }
+  ]},
+  { from:"08:30", to:"09:00", tag:"With Shweta", lines:[
+    { id:"H-11", t:"Fifteen minutes is enough. Have a cup of tea." },
+    { id:"H-11", t:"Overthinking forms in the empty space. So fill that empty space." },
+    { id:"H-12", t:"This quality time is not going to come to you. It will not come on its own." },
+    { id:"H-32", t:"Don't wait because they have not come to you. You go first." },
+    { id:"H-07", t:"Ask them what the problem is. Not defensively. Be ready to listen." },
+    { id:"H-10", t:"You have to talk to your wife." },
+    { id:"H-29", t:"If you want emotional fulfilment, you have to compromise a little." },
+    { id:"H-30", t:"At least if it is peace, then it is a compromise." }
+  ]},
+  { from:"09:00", to:"09:45", tag:"With your parents", lines:[
+    { id:"H-28", t:"You have to show a little bit of emotion to them. Because they think you escape." },
+    { id:"H-24", t:"And the rest of your parents are not wrong." },
+    { id:"H-22", t:"Negative and positive is in every person. Both sides are the same. Balance both sides." },
+    { id:"H-09", t:"You need to talk to them — and you need to talk to your parents as well." },
+    { id:"H-26", t:"Show them care. They feel lack of care. On both sides. Both have to be in good mood." },
+    { id:"H-23", t:"You can't always give priority to your own standpoint only." },
+    { id:"H-25", t:"Both sides a little bit." },
+    { id:"H-34", t:"Aggression is fine. But when you stop listening to all this, you will start to understand." }
+  ]},
+  { from:"09:45", to:"13:00", tag:"At the clinic", lines:[
+    { id:"F-08", t:"Consequences are not in your hands. Your capability is." },
+    { id:"F-07", t:"There can be a mistake — you are a human being. But you have to make your mind that there will be no mistake." },
+    { id:"F-06", t:"We have to do a hundred percent of the work. If you are scared, your work will not be good." }
+  ]},
+  { from:"13:00", to:"14:30", tag:"Between patients", lines:[
+    { id:"T-06", t:"Take it every time like medicine." },
+    { id:"T-05", t:"This patient is done, the next one is a little while away — at least twelve minutes is enough." },
+    { id:"T-04", t:"You have to take out your time. Time is not going to be given to you." }
+  ]},
+  { from:"14:30", to:"18:00", tag:"At the clinic", lines:[
+    { id:"F-10", t:"You have to gain a little confidence." },
+    { id:"K-05", t:"Confidence increases with practice. Knowledge increases with study. Action and knowledge." },
+    { id:"F-09", t:"Discussing a case with someone experienced is fine. Working from the fear is not." }
+  ]},
+  { from:"18:00", to:"20:30", tag:"On your circle", lines:[
+    { id:"L-04", t:"Talk to such doctors who have practised a lot, who have handled the cases — the enthusiastic people." },
+    { id:"L-04", t:"Don't be with depressing people. They will absorb you." },
+    { id:"F-11", t:"Your circle — you have to change it. It is very important. Stay with the people who have confidence." },
+    { id:"F-12", t:"You will not be able to learn there. You will have to change the community." },
+    { id:"F-02", t:"Negative people around you get absorbed by your mind. This is actually psychology." }
+  ]},
+  { from:"20:30", to:"21:30", tag:"Walking back in", lines:[
+    { id:"H-15", t:"Fighting is the worst kind of power. Silence can be a power. But you have to take an active action." },
+    { id:"H-18", t:"As a man of the house, you have to be seen." },
+    { id:"H-02", t:"The big fights are understood. It is the small fights that turn the energy of the house bad." },
+    { id:"H-33", t:"You will have to be a little diplomatic." },
+    { id:"H-13", t:"You are a passive person and this is very active. You have to take a little lead." },
+    { id:"H-14", t:"You will have to take the lead." },
+    { id:"H-16", t:"You have to exert your own power — not by fighting, but by being an authority." },
+    { id:"H-19", t:"Sometimes you do need to exert a little bit of your power." },
+    { id:"H-21", t:"Take the stand up as a man of the house." },
+    { id:"H-36", t:"Try to manage both sides. If you have to do an extra drama, then do it." },
+    { id:"H-17", t:"And if that does not work — then you take a strict action." }
+  ]},
+  { from:"21:30", to:"22:30", tag:"Before sleep", lines:[
+    { id:"H-38", t:"It will not be easy. But try once." },
+    { id:"H-39", t:"You will have to do it. It will happen. It will take time." },
+    { id:"H-35", t:"If it keeps the peace, if dharma is being saved, then even a little managing is good." },
+    { id:"L-03", t:"No one will do it. You have to do it. You are not a child. You have to do it consciously." },
+    { id:"P-06", t:"Until the craving is there, even if you leave it, you will still not be developing. The fear from inside will remain." },
+    { id:"P-07", t:"As a human we can survive, and survive better. It is not that we will not be alive if we don't eat non-veg." },
+    { id:"P-08", t:"You should have that feeling from inside that you don't need that food." },
+    { id:"P-09", t:"Leave it slowly. Work on it consciously, just like an addiction. Make the body sattvic from that side." }
+  ]},
+  { from:"22:30", to:"04:44", tag:"The last word", lines:[
+    { id:"F-14", t:"It is a loop of the mind. Not a physical bond. No one can take you out of it — you have to." },
+    { id:"L-05", t:"Honestly — you are a procrastinator. That is the cycle to fix." },
+    { id:"L-07", t:"Do actions that keep your mind fresh, reduce the fear, and talk to people who can help you genuinely." },
+    { id:"L-06", t:"But do this consciously." },
+    { id:"H-01", t:"Let's see the problem first. Then we will see the solution." },
+  ]}
+];
+
+function _gMin(s){ const p = s.split(":"); return (+p[0]) * 60 + (+p[1]); }
+
+function getHerGuidance() {
+  const n = new Date();
+  const cur = n.getHours() * 60 + n.getMinutes();
+  const dayIdx = Math.floor((Date.now() + 19800000) / 86400000);
+  const pick = w => w.lines[dayIdx % w.lines.length];
+  const find = tag => HER_GUIDANCE.find(w => w.tag === tag);
+
+  let live = null;
+  for (const w of HER_GUIDANCE) {
+    const a = _gMin(w.from), b = _gMin(w.to);
+    const inside = (a <= b) ? (cur >= a && cur < b) : (cur >= a || cur < b);
+    if (inside) { live = { tag: w.tag, line: pick(w) }; break; }
+  }
+  if (!live) return null;
+
+  // Pranav opens Saumya in the morning and again at night — almost never mid-clinic.
+  // So the morning carries the day forward, and the night collects what he walked past.
+  // Nothing from her is delivered into an hour he will never be looking.
+  // Carry-forward used to key off a 10:00 cutoff, which assumed a 4:44 wake.
+  // Wake at 10:15 and it delivered nothing. Now it simply looks at what is still
+  // ahead on the clock — correct at any wake time, and it never lists a window
+  // that has already gone.
+  const nowM = cur;
+  const ahead = HER_GUIDANCE
+    .filter(w => { const a = _gMin(w.from); return a > nowM && a < _gMin("22:30"); })
+    .slice(0, 3)
+    .map(w => ({ tag: w.tag, at: w.from, t: pick(w).t }));
+
+  if (ahead.length) {
+    live.aheadLabel = "Still ahead today";
+    live.ahead = ahead;
+  } else {
+    const past = HER_GUIDANCE
+      .filter(w => { const a = _gMin(w.from); return a <= nowM && a >= _gMin("09:00"); })
+      .slice(-3)
+      .map(w => ({ tag: w.tag, at: w.from, t: pick(w).t }));
+    if (past.length) { live.aheadLabel = "Earlier today she also said"; live.ahead = past; }
+  }
+  return live;
+}
+
+function renderGuidance() {
+  const slot = $("guidanceSlot");
+  if (!slot) return;
+  if (document.body.classList.contains('app-b-active') ||
+      document.body.classList.contains('app-c-active')) { slot.innerHTML = ''; return; }
+  const g = getHerGuidance();
+  if (!g) { slot.innerHTML = ''; return; }
+
+  // Rittika. Long hair past the shoulders, a dupatta drape, bindi and jhumkas —
+  // at 46px those read as a woman instantly, where a bare silhouette did not.
+  // Still no eyes or mouth: a drawn face this small goes uncanny and the line
+  // stops sounding like a person.
+  // Rittika. A real face, embedded — the drawn version could not escape the
+  // uncanny valley at this size, same lesson as the lotus and the OPG.
+  const FIGURE = '<img class="hg-face" alt="Rittika" '
+    + 'src="data:image/jpeg;base64,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">';
+
+  let extra = '';
+  if (g.ahead && g.ahead.length) {
+    extra = '<div class="hg-ahead"><div class="hg-ahead-h">' + escapeHtml(g.aheadLabel) + '</div>' +
+      g.ahead.map(a =>
+        '<div class="hg-ahead-row">' +
+          '<span class="hg-ahead-at">' + escapeHtml(a.at) + '</span>' +
+          '<span class="hg-ahead-t">' + escapeHtml(a.t) + '</span>' +
+        '</div>').join('') + '</div>';
+  }
+
+  slot.innerHTML =
+    '<div class="hg-card">' +
+      '<div class="hg-top">' +
+        '<span class="hg-dot"></span>' +
+        '<span class="hg-tag">Rittika says</span>' +
+        '<span class="hg-ref">' + escapeHtml(g.line.id) + '</span>' +
+      '</div>' +
+      '<div class="hg-say">' +
+        '<div class="hg-fig">' + FIGURE + '</div>' +
+        '<div class="hg-bubble"><span class="hg-ring"></span>' +
+          '<div class="hg-inner"><div class="hg-quote">' + escapeHtml(g.line.t) + '</div></div></div>' +
+      '</div>' +
+      extra +
+      '<div class="hg-src">' + escapeHtml(g.tag) + ' &middot; 18 July</div>' +
+    '</div>';
 }
 
 // ========== SCHEDULE PHASES ==========
@@ -7632,6 +8034,13 @@ function getVisibleSections() {
     baseBlocks = baseBlocks.filter(s => s.medsSection || s.tasks.some(t => ALL_MED_IDS.includes(t.id)));
   }
 
+  // Home-day awareness: if he never went in, stop showing "Leave for clinic"
+  // and "Reach home" — he is already home.
+  if (getClinicDayState() === 'home') {
+    var CLINIC_ONLY_IDS = ['m445_leave', 'r11'];
+    baseBlocks = baseBlocks.filter(function(s){ return CLINIC_ONLY_IDS.indexOf(s.id) === -1; });
+  }
+
   // v8.25: meds + the morning family block now live in dedicated cards — drop their duplicates from the schedule
   var SAUMYA_MED_IDS = ["med_thyrox","med_linvas","med_rosumac","med_calcimax","med_probiotic","med_shilajit","med_melato"];
   baseBlocks = baseBlocks
@@ -7682,6 +8091,7 @@ function getCompletedCount() {
   let count = 0;
   const todayStr = today();
   for (const s of getVisibleSections()) {
+    if (typeof sectionPassedBeforeWake === 'function' && sectionPassedBeforeWake(s.id)) continue;
     if (s.journal) {
       if (getJournalEntry(s.journalKey)) count++;
     } else if (s.sleepButton) {
@@ -7696,6 +8106,8 @@ function getTotalCount() {
   let total = 0;
   const todayStr = today();
   for (const s of getVisibleSections()) {
+    // Blocks that closed before he woke were never reachable — don't score them.
+    if (typeof sectionPassedBeforeWake === 'function' && sectionPassedBeforeWake(s.id)) continue;
     if (s.journal) total += 1;
     else if (s.sleepButton) total += 1;
     else total += s.tasks.filter(t => (!t.until || t.until >= todayStr) && (!t.from || t.from <= todayStr)).length;
@@ -13844,6 +14256,9 @@ function render() {
   renderNotifBtnState();
   renderKmBadge();
   renderNowCard();
+  renderClinicDayNote();
+  renderGuidance();
+  renderDayShape();
   renderRecap();
   renderWeeklyReport();
   renderEnergyStreak();
@@ -13897,11 +14312,8 @@ function render() {
       pill.style.color = "#ffffff";
       pill.style.boxShadow = "0 1px 3px rgba(0,0,0,0.3)";
       sub.textContent = "Rising at 4:44 · the morning is yours";
-      sub.style.color = "#445063";
-      if (title) {
-        title.style.color = "#5b21b6";
-        title.style.textShadow = "0 1px 0 rgba(255,255,255,0.55)";
-      }
+      sub.style.color = "rgba(226,214,255,0.72)";
+      // title colours itself via .l445-num / .l445-word
     }
   })();
 
@@ -15389,7 +15801,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v10.11 · 5-Jul";
+const SAUMYA_BUILD = "v10.26 · 18-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
@@ -16047,6 +16459,86 @@ window.addEventListener('popstate', (event) => {
 .sched-vitd .sl-name{font-size:13.5px;color:rgba(226,232,240,.9);}
 .sched-vitd .sl-row.on .sl-name{color:rgba(226,232,240,.5);text-decoration:line-through;}
 .sched-vitd .sl-note{font-size:10.5px;color:rgba(226,232,240,.45);}
+
+#dayShape{margin:2px 20px 0;}
+#dayShape .ds-line{font-size:11.5px;line-height:1.5;color:rgba(226,232,240,.42);text-align:center;}
+body.app-b-active #dayShape, body.app-c-active #dayShape{display:none !important;}
+
+/* ===== Clinic-day note ===== */
+#clinicDayNote{margin:12px 16px 0;}
+#clinicDayNote .cdn-card{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.08);
+  border-radius:13px;padding:10px 13px;}
+#clinicDayNote .cdn-txt{flex:1 1 170px;font-size:11.5px;line-height:1.4;color:rgba(226,232,240,.55);}
+#clinicDayNote .cdn-btn{padding:6px 12px;border-radius:9px;font-family:inherit;font-size:11px;
+  cursor:pointer;color:rgba(226,232,240,.8);background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.15);}
+#clinicDayNote .cdn-btn:active{background:rgba(255,255,255,.09);}
+#clinicDayNote .cdn-warn{background:rgba(248,113,113,.06);border-color:rgba(248,113,113,.28);}
+#clinicDayNote .cdn-warn .cdn-txt{color:rgba(240,236,228,.8);}
+#clinicDayNote .cdn-warn b{color:rgba(248,150,150,.95);font-weight:700;}
+
+/* ===== Her guidance — one line, matched to the hour. No ticks by design. ===== */
+#guidanceSlot{margin:14px 16px 0;}
+#guidanceSlot .hg-card{
+  position:relative;background:linear-gradient(160deg,rgba(251,191,36,.055),rgba(255,255,255,.018));
+  border:1px solid rgba(251,191,36,.20);border-left:2px solid rgba(251,191,36,.55);
+  border-radius:16px;padding:13px 15px 11px;animation:hgIn .55s ease both;}
+#guidanceSlot .hg-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+#guidanceSlot .hg-dot{width:6px;height:6px;border-radius:50%;background:rgba(251,191,36,.9);
+  box-shadow:0 0 8px rgba(251,191,36,.75);animation:hgPulse 3.2s ease-in-out infinite;flex:0 0 6px;}
+#guidanceSlot .hg-tag{font-size:10px;letter-spacing:.9px;text-transform:uppercase;
+  color:rgba(251,215,150,.85);font-weight:700;}
+#guidanceSlot .hg-ref{margin-left:auto;font-size:9px;letter-spacing:.5px;
+  color:rgba(226,232,240,.24);font-variant-numeric:tabular-nums;}
+#guidanceSlot .hg-say{display:flex;gap:11px;align-items:flex-start;}
+#guidanceSlot .hg-fig{position:relative;flex:0 0 48px;height:48px;margin-top:2px;
+  animation:hgBreath 5.4s ease-in-out infinite;}
+#guidanceSlot .hg-face{width:48px;height:48px;border-radius:50%;object-fit:cover;display:block;
+  border:1.5px solid rgba(251,191,36,.42);box-shadow:0 2px 10px rgba(0,0,0,.45);}
+#guidanceSlot .hg-fig:before{content:'';position:absolute;inset:-5px;border-radius:50%;
+  background:radial-gradient(circle,rgba(251,191,36,.20) 0%,rgba(251,191,36,0) 68%);
+  animation:hgHalo 3.6s ease-in-out infinite;pointer-events:none;}
+#guidanceSlot .hg-bubble{position:relative;flex:1;border-radius:15.6px;}
+/* the rim: a conic sweep spinning behind an opaque inner panel, so only a
+   1.6px band of it is ever visible — a light running the border, not a pulse */
+#guidanceSlot .hg-ring{position:absolute;inset:0;border-radius:15.6px;overflow:hidden;
+  background:rgba(251,191,36,.15);}
+#guidanceSlot .hg-ring:after{content:'';position:absolute;left:50%;top:50%;
+  width:260%;aspect-ratio:1;
+  background:conic-gradient(from 0deg,
+    rgba(251,191,36,0) 0deg, rgba(251,191,36,0) 214deg,
+    rgba(251,191,36,.42) 262deg, rgba(255,238,194,.98) 292deg,
+    rgba(255,255,236,1) 300deg, rgba(255,238,194,.98) 308deg,
+    rgba(251,191,36,.42) 338deg, rgba(251,191,36,0) 360deg);
+  animation:hgSpin 4.2s linear infinite;}
+#guidanceSlot .hg-inner{position:relative;margin:1.6px;background:#161a21;
+  border-radius:14px;padding:11px 13px;}
+#guidanceSlot .hg-inner:before{content:'';position:absolute;left:-6px;top:15px;
+  width:11px;height:11px;background:#161a21;transform:rotate(45deg);
+  border-radius:0 0 0 3px;}
+#guidanceSlot .hg-quote{font-size:14.5px;line-height:1.5;color:rgba(240,236,228,.94);
+  font-style:italic;letter-spacing:.1px;}
+@keyframes hgBreath{0%,100%{transform:translateY(0);}50%{transform:translateY(-2.5px);}}
+@keyframes hgHalo{0%,100%{opacity:.32;}50%{opacity:.85;}}
+@keyframes hgSpin{from{transform:translate(-50%,-50%) rotate(0deg);}
+  to{transform:translate(-50%,-50%) rotate(360deg);}}
+#guidanceSlot .hg-src{margin-top:9px;font-size:9.5px;letter-spacing:.6px;
+  color:rgba(226,232,240,.3);text-align:right;}
+#guidanceSlot .hg-ahead{margin-top:13px;padding-top:11px;border-top:1px solid rgba(251,191,36,.16);}
+#guidanceSlot .hg-ahead-h{font-size:9.5px;letter-spacing:.8px;text-transform:uppercase;
+  color:rgba(251,215,150,.6);margin-bottom:8px;font-weight:700;}
+#guidanceSlot .hg-ahead-row{display:flex;gap:9px;margin-bottom:7px;align-items:baseline;}
+#guidanceSlot .hg-ahead-at{flex:0 0 34px;font-size:10px;color:rgba(251,215,150,.65);
+  font-variant-numeric:tabular-nums;}
+#guidanceSlot .hg-ahead-t{flex:1;font-size:12px;line-height:1.42;color:rgba(240,236,228,.66);font-style:italic;}
+@keyframes hgIn{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:none;}}
+@keyframes hgPulse{0%,100%{opacity:.55;}50%{opacity:1;}}
+body.app-b-active #guidanceSlot, body.app-c-active #guidanceSlot,
+body.app-b-active #clinicDayNote, body.app-c-active #clinicDayNote{display:none !important;}
+@media (prefers-reduced-motion: reduce){
+  #guidanceSlot .hg-card,#guidanceSlot .hg-dot,#guidanceSlot .hg-fig,
+  #guidanceSlot .hg-ring:after,#guidanceSlot .hg-fig:before{animation:none !important;}}
 #saumyaLife{margin:16px 16px 0;display:flex;flex-direction:column;gap:14px;}
 #saumyaLife .sl-card{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:14px 14px 12px;}
 #saumyaLife .sl-h{font-size:13px;font-weight:700;letter-spacing:.3px;color:rgba(226,232,240,.92);margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
