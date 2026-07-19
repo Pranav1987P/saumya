@@ -7434,13 +7434,15 @@ function confirmWentToClinic() {
 // The schedule used to march through "Leave for clinic" / "Reach home" purely on
 // the clock, even on days Pranav never went. Now the day is read from real events.
 //   'clinic'  — arrived_clinic logged today (or manually confirmed)
-//   'home'    — Sunday, manually set, or past 1 PM with no arrival
+//   'home'    — manually set, or past 1 PM with no arrival (Sundays included:
+//               he often goes in on a Sunday, with Pranshu and Shweta)
 //   'unknown' — too early to tell; assume nothing, change nothing
 function getClinicDayState() {
   const k = today();
   if (state.clinicDayOverride && state.clinicDayOverride[k]) return state.clinicDayOverride[k];
-  if (typeof isSunday === 'function' && isSunday()) return 'home';
+  // A real arrival beats the day of the week. Sundays are often clinic days.
   if (typeof _todayEvt === 'function' && _todayEvt('arrived_clinic')) return 'clinic';
+  if (typeof isSunday === 'function' && isSunday()) return 'home';
   return (new Date().getHours() >= 13) ? 'home' : 'unknown';
 }
 function setClinicDay(v) {
@@ -7453,7 +7455,8 @@ function setClinicDay(v) {
 function isClinicDayInferred() {
   const k = today();
   if (state.clinicDayOverride && state.clinicDayOverride[k]) return false;
-  if (typeof isSunday === 'function' && isSunday()) return false;
+  // On a Sunday with no arrival logged, still offer the correction - he may well
+  // have gone in and the macro simply missed it.
   return getClinicDayState() === 'home';
 }
 function renderClinicDayNote() {
@@ -10423,9 +10426,12 @@ const CLINIC_ARRIVAL_MESSAGES = [
     "Empty waiting room, sharp mind, no fires yet. The window is small. Move."
   ]},
   // Sunday or weekend (you came in anyway)
+  // Sunday — Pranshu and Shweta come in with him, so they are here, not waiting at home
   { when: 'sunday', lines: [
-    "It's Sunday and you came in anyway. Either there's a good reason, or you're hiding from your family in your work. Be honest with yourself which.",
-    "Sunday at the clinic. Pranshu is at home. Shweta is at home. Whatever brought you here, finish it fast and get back to them."
+    "Sunday, and all three of you are here. Shweta has her own list. Pranshu is watching how his father works — that is the lesson, not the words.",
+    "Sunday at the clinic, together. Finish what you came for, then let it be a family day again.",
+    "They came with you. Don't spend the whole day with your back to them.",
+    "Sunday: the work is lighter, the company is better. Take one break with Pranshu that isn't about the clinic."
   ]},
 ];
 
@@ -16032,7 +16038,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v10.56 · 19-Jul";
+const SAUMYA_BUILD = "v10.59 · 19-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
@@ -16643,6 +16649,7 @@ window.addEventListener('popstate', (event) => {
 .iw-cy{border-left-color:#22d3ee;} .iw-cy .iw-mentor-n{color:#67e8f9;} .iw-cy .iw-mentor-go{color:#22d3ee;}
 .iw-or{border-left-color:#fb923c;} .iw-or .iw-mentor-n{color:#fdba74;} .iw-or .iw-mentor-go{color:#fb923c;}
 .iw-li{border-left-color:#a3e635;} .iw-li .iw-mentor-n{color:#bef264;} .iw-li .iw-mentor-go{color:#a3e635;}
+.iw-te{border-left-color:#2dd4bf;} .iw-te .iw-mentor-n{color:#5eead4;} .iw-te .iw-mentor-go{color:#2dd4bf;}
 .iw-path{display:flex;flex-wrap:wrap;align-items:center;gap:5px;}
 .iw-step{font-size:11.5px;color:#fff;background:rgba(251,191,36,0.16);border:1px solid rgba(251,191,36,0.3);padding:5px 10px;border-radius:20px;white-space:nowrap;}
 .iw-arrow{color:rgba(251,191,36,0.6);font-size:13px;}
@@ -17220,7 +17227,8 @@ body.app-b-active #saumyaLife, body.app-c-active #saumyaLife { display:none !imp
       {n:'Dr. Simon Oh',s:'Zygomatic · pterygoid · All-on-X full-arch',u:'https://instagram.com/subwrx04',c:'ro'},
       {n:'Dr. Ankur Prajapati',s:'Advanced implantology · full-arch rehab',u:'https://instagram.com/drankurprajapati_official',c:'cy'},
       {n:'Dan Holzclaw',s:'Full-arch surgery · advanced anchorage',u:'https://instagram.com/danholzklau',c:'or'},
-      {n:'Dr. Tarun Kumar',s:'Full-arch implants · immediate loading',u:'https://instagram.com/dr.tarunkumar_implant',c:'li'}];
+      {n:'Dr. Tarun Kumar',s:'Full-arch implants · immediate loading',u:'https://instagram.com/dr.tarunkumar_implant',c:'li'},
+      {n:'Dr. Andrea Bernardis',s:'Para-nasal implants · graftless maxilla · immediate loading',u:'https://instagram.com/andrea_bernardis_implantology',c:'te'}];
     var mt=''; for(var i=0;i<mentors.length;i++){ var m=mentors[i]; mt+='<a class="iw-mentor iw-'+m.c+'" href="'+m.u+'" target="_blank" rel="noopener"><div class="iw-mentor-n">'+esc(m.n)+'</div><div class="iw-mentor-s">'+esc(m.s)+'</div><div class="iw-mentor-go">open profile →</div></a>'; }
     var PATH=['Watch every case','Assist · your chair','Course + cadaver','Pterygoid first','Co-surgeon zygoma','Solo — the name'];
     var ph=''; for(var pp=0;pp<PATH.length;pp++){ ph+='<span class="iw-step">'+esc(PATH[pp])+'</span>'+(pp<PATH.length-1?'<span class="iw-arrow">›</span>':''); }
