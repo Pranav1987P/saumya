@@ -1307,6 +1307,17 @@ body.app-b-active #anniversaryCard { display: none !important; }
 .row-action.del { border-color: rgba(239, 68, 68, 0.3); }
 
 /* Wake-up button (sticky top of dashboard) */
+/* Blocks whose window closed before you woke: present, not accusing. */
+.ds-second { color: rgba(240,236,228,.46); font-size: 11.5px; margin-top: 2px; }
+.section.before-wake { opacity: .42; }
+.section.before-wake .section-progress { color: rgba(240,236,228,.34); font-weight: 600; }
+.section.before-wake .section-title::after {
+  content: ' \00b7 before you woke';
+  font-size: 10.5px; font-weight: 500; letter-spacing: .2px;
+  color: rgba(240,236,228,.30);
+}
+/* A stat with nothing behind it should read as "no data", not as a bad score. */
+.stat-num.stat-empty { color: rgba(240,236,228,.30) !important; font-weight: 600; }
 .wake-card {
   margin: 0 16px 14px;
   padding: 14px 16px;
@@ -1597,6 +1608,24 @@ body.app-b-active #anniversaryCard { display: none !important; }
 .motivation.gold { color: var(--gold); }
 
 /* RECAP CARD */
+/* Today's bright spot - one good thing a day, kept and looked back on. */
+.bright-card{display:none;margin:12px 16px 0;padding:15px 15px 13px;border-radius:16px;
+  border:1px solid rgba(251,191,36,.20);
+  background:linear-gradient(160deg,rgba(251,191,36,.06),rgba(255,255,255,.02));}
+.bright-card.show{display:block;}
+.bright-label{font-size:11px;letter-spacing:2.4px;text-transform:uppercase;font-weight:700;
+  color:#f8d98d;margin-bottom:5px;}
+.bright-sub{font-size:12px;color:rgba(240,236,228,.55);margin-bottom:10px;}
+.bright-input{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);
+  border-radius:11px;padding:11px 12px;color:#f0ece4;font:inherit;font-size:14px;}
+.bright-save{margin-top:9px;width:100%;padding:10px;border-radius:11px;cursor:pointer;
+  font:inherit;font-size:13px;font-weight:700;border:1px solid rgba(251,191,36,.4);
+  background:rgba(251,191,36,.13);color:#f8d98d;}
+.bright-saved{font-family:'Cormorant Garamond','Cormorant Garamond Fallback',serif;
+  font-size:18px;font-style:italic;color:#f8d98d;line-height:1.4;padding:4px 0 2px;}
+.bright-past{margin-top:11px;font-size:12px;line-height:1.6;color:rgba(240,236,228,.5);}
+.bright-past .bp-row{padding:3px 0;border-top:1px solid rgba(255,255,255,.05);}
+.bright-past .bp-date{color:rgba(240,236,228,.32);font-size:10.5px;letter-spacing:.3px;}
 .recap-card {
   margin: 12px 16px 0;
   padding: 18px;
@@ -3323,7 +3352,7 @@ body.app-c-active .app-b { display: none !important; }
 }
 .b-now .b-triad-label { color: var(--teal); }
 .b-next .b-triad-label { color: #a78bfa; }
-.b-danger .b-triad-label { color: #ef4444; }
+.b-danger .b-triad-label { color: #f8d98d; }  /* was red DANGER; now steadying amber */
 .b-triad-text {
   font-family: 'Cormorant Garamond', 'Cormorant Garamond Fallback', serif;
   font-size: 16px;
@@ -5190,8 +5219,8 @@ body.app-c-active .app-b { display: none !important; }
     </section>
     <section class="bcard b-triad">
       <div class="b-triad-row b-danger" id="bTriadDanger">
-        <div class="b-triad-label">DANGER</div>
-        <div class="b-triad-text" id="bDangerText">What could ruin today if ignored?</div>
+        <div class="b-triad-label">TODAY'S FOOTING</div>
+        <div class="b-triad-text" id="bDangerText">One thing that would make today feel in control?</div>
         <div class="b-triad-edit">✎</div>
       </div>
     </section>
@@ -5733,6 +5762,7 @@ body.app-c-active .app-b { display: none !important; }
   </div>
 
   <div id="timeStripSlot"></div>
+  <div id="protectedSlot"></div>
 
   <!-- Govt holiday prompt removed 2026-05-21 — schedule is rule-based by date now -->
 
@@ -5798,6 +5828,15 @@ body.app-c-active .app-b { display: none !important; }
     </div>
   </div>
 
+  <div class="bright-card" id="brightCard">
+    <div class="bright-label">✨ Today's bright spot</div>
+    <div class="bright-sub" id="brightSub">One good thing from today — however small.</div>
+    <input type="text" class="bright-input" id="brightInput" maxlength="140"
+           placeholder="A patient's thanks. Ten quiet minutes. Pranshu laughing." onclick="event.stopPropagation()">
+    <button type="button" class="bright-save" data-bright="save">Keep it</button>
+    <div class="bright-past" id="brightPast"></div>
+  </div>
+
   <div class="recap-card" id="recapCard">
     <div class="recap-label">🌙 Today's Chapter</div>
     <div class="recap-title" id="recapTitle">A look back at your day</div>
@@ -5843,6 +5882,7 @@ body.app-c-active .app-b { display: none !important; }
   <div class="stats">
     <div class="stat"><div class="stat-num teal" id="daysTracked">0</div><div class="stat-label">Days tracked</div></div>
     <div class="stat"><div class="stat-num gold" id="totalPerfect">0</div><div class="stat-label">Perfect days</div></div>
+          <div class="stat"><div class="stat-num" id="totalEnough" style="color:#5eead4;">0</div><div class="stat-label">Showed-up days</div></div>
   </div>
   <div class="stats" style="grid-template-columns: 1fr 1fr;">
     <div class="stat"><div class="stat-num" id="medAdherence7" style="color:var(--rose)">—</div><div class="stat-label">Med adherence (7d)</div></div>
@@ -7252,17 +7292,79 @@ function getWakeSource() {
 }
 // You beat the band, the band beats the phone. The phone only knows when you
 // picked it up, which can be well after you opened your eyes.
+// Waking up and getting up are two different events, and for him they often are.
+// WHOOP reports when the main sleep block ended; the phone reports when the day
+// actually started. Surfacing at 7:30 and going back down until 11:30 makes both
+// readings true - so take the LATER of the two, not WHOOP by default.
+// Guard: if the phone signal is more than six hours after the band's, that is
+// more likely a phone he simply did not touch than a lie-in, so keep the band's.
+const WAKE_REJOIN_CAP = 6 * 60;
+
+function phoneWakeMins() {
+  const w = (typeof _todayEvt === 'function') ? _todayEvt('woke_up') : null;
+  if (!w || !w.ts) return null;
+  const d = new Date(w.ts);
+  return d.getHours() * 60 + d.getMinutes();
+}
+
+// The end of the last sleep of any kind, night or nap. Only counts if it
+// belongs to today, so a stale reading cannot decide the day.
+function whoopLastWakeMins() {
+  const e = state.whoopLastSleepEnd;
+  if (!e) return null;
+  const d = new Date(e);
+  if (isNaN(d)) return null;
+  if (localDateKey(d) !== today()) return null;
+  return d.getHours() * 60 + d.getMinutes();
+}
+
 function getWakeMins() {
   const w = (typeof _todayEvt === 'function') ? _todayEvt('woke_up') : null;
+  // What you say yourself always wins.
   if (w && w.src === 'you' && w.ts) {
     const d = new Date(w.ts);
     return d.getHours() * 60 + d.getMinutes();
   }
+  // The band knows about the second sleep; prefer it over any guess.
+  const lw = whoopLastWakeMins();
+  if (lw !== null) return lw;
   const ww = whoopWakeMins();
+  const pw = phoneWakeMins();
+  if (ww !== null && pw !== null) {
+    if (pw > ww && (pw - ww) <= WAKE_REJOIN_CAP) return pw;   // went back to sleep
+    return ww;
+  }
   if (ww !== null) return ww;
-  if (!w || !w.ts) return null;
-  const d = new Date(w.ts);
-  return d.getHours() * 60 + d.getMinutes();
+  return pw;
+}
+
+// When the band and the phone disagree in that particular way, it is not a
+// conflict - it is a second sleep. Report both rather than hiding one.
+function getSecondSleep() {
+  const w = (typeof _todayEvt === 'function') ? _todayEvt('woke_up') : null;
+  if (w && w.src === 'you') return null;
+  // If the band recorded the second sleep itself, use that - it is measured,
+  // not inferred from when a phone happened to be picked up.
+  const naps = state.whoopNaps;
+  if (naps && naps.length) {
+    const n = naps[naps.length - 1];
+    const ns = n.start ? new Date(n.start) : null;
+    const ne = n.end ? new Date(n.end) : null;
+    const first = whoopWakeMins();
+    if (ns && ne && !isNaN(ns) && !isNaN(ne) && first !== null) {
+      return {
+        firstWake: first,
+        gotUp: ne.getHours() * 60 + ne.getMinutes(),
+        backDownMin: Math.round((ne - ns) / 60000),
+        measured: true
+      };
+    }
+  }
+  const ww = whoopWakeMins(), pw = phoneWakeMins();
+  if (ww === null || pw === null) return null;
+  const gap = pw - ww;
+  if (gap < 45 || gap > WAKE_REJOIN_CAP) return null;
+  return { firstWake: ww, gotUp: pw, backDownMin: gap };
 }
 // A block is 'passed' only if its window had already closed when he woke.
 function sectionPassedBeforeWake(id) {
@@ -7350,10 +7452,24 @@ function renderDayShape() {
   const src = (typeof getWakeSource === 'function') ? getWakeSource() : 'phone';
   const srcLabel = src === 'you' ? 'you set this' : src === 'whoop' ? 'from WHOOP'
     : src === 'app' ? 'from when you last used Saumya' : 'from your phone';
-  slot.innerHTML = sleepLine +
+  // Surfacing once, going back down, then getting up is a real night, not a
+  // contradiction between the band and the phone. Say both.
+  var second = (typeof getSecondSleep === 'function') ? getSecondSleep() : null;
+  var secondLine = '';
+  if (second) {
+    var fh = Math.floor(second.firstWake / 60), fm = second.firstWake % 60;
+    var fap = fh >= 12 ? 'PM' : 'AM', f12 = (fh % 12) || 12;
+    var bh = Math.floor(second.backDownMin / 60), bm = second.backDownMin % 60;
+    secondLine = '<div class="ds-line ds-second">Surfaced at ' + f12 + ':' +
+      String(fm).padStart(2,'0') + ' ' + fap + ', then slept again for ' +
+      (bh ? bh + 'h ' : '') + (bm ? bm + 'm' : '') +
+      (second.measured ? ' <span class="ds-src">(from WHOOP)</span>' : '') + '.</div>';
+  }
+  slot.innerHTML = sleepLine + secondLine +
     '<div class="ds-line">' +
       d.passedBlocks + ' block' + (d.passedBlocks === 1 ? '' : 's') +
-      ' had already passed when you woke at ' + h12 + ':' + String(mm).padStart(2,'0') + ' ' + ap +
+      ' had already passed when you ' + (second ? 'got up' : 'woke') + ' at ' +
+      h12 + ':' + String(mm).padStart(2,'0') + ' ' + ap +
       '. Today is scored on the ' + d.reachable + ' that were still open.' +
       ' <span class="ds-src">(' + srcLabel + ')</span>' +
       ' <button type="button" class="ds-fix" id="dsFixWake">' +
@@ -7869,6 +7985,11 @@ function loadState() {
       vitdDosesDone: saved.vitdDosesDone || 0,
       vitdSnoozeUntil: saved.vitdSnoozeUntil || 0,
       whoopSleepEnd: saved.whoopSleepEnd || null,
+      whoopLastSleepEnd: saved.whoopLastSleepEnd || null,
+      whoopRecovery: (typeof saved.whoopRecovery === 'number') ? saved.whoopRecovery : null,
+      protectedDay: saved.protectedDay || {},
+      brightSpots: saved.brightSpots || {},
+      whoopNaps: saved.whoopNaps || null,
       whoopSleepStart: saved.whoopSleepStart || null,
       whoopSleepHrs: (typeof saved.whoopSleepHrs === 'number') ? saved.whoopSleepHrs : null,
       gapSleep: saved.gapSleep || {},
@@ -8112,6 +8233,51 @@ function clearJournal(key) {
   }
 }
 
+// ============================================================================
+// PROTECTED DAY
+// Some days you do not have a full day in you. On those, the app should ask for
+// less - not congratulate you for surviving a list it kept demanding anyway.
+// Nothing is deleted; the day shrinks to what actually has to happen, the
+// scoring goes quiet, and one tap puts it back.
+// ============================================================================
+const PROTECTED_ESSENTIAL =
+  /medicine|meds|thyrox|breakfast|lunch|dinner|meal|refuel|eat|water|hydrate|sleep|rest|clinic|walk|pranshu|shweta/i;
+
+function isProtectedDay() {
+  return !!(state.protectedDay && state.protectedDay[today()]);
+}
+
+function setProtectedDay(on) {
+  if (!state.protectedDay) state.protectedDay = {};
+  if (on) state.protectedDay[today()] = true;
+  else delete state.protectedDay[today()];
+  saveState();
+  if (typeof render === 'function') { try { render(); } catch(e){} }
+}
+
+function isEssentialSection(s) {
+  if (!s) return false;
+  if (s.medsSection) return true;
+  if (s.sleepButton) return true;
+  return PROTECTED_ESSENTIAL.test(((s.title || '') + ' ' + (s.time || '')));
+}
+
+// Why today might deserve to be a smaller one. Evidence only - no guessing.
+function protectedDayReasons() {
+  const out = [];
+  try {
+    const w = (typeof getSleepWindow === 'function') ? getSleepWindow() : null;
+    if (w && w.asleepMin != null && w.asleepMin < 300) {
+      out.push('under five hours of sleep');
+    }
+    const rec = (typeof state.whoopRecovery === 'number') ? state.whoopRecovery : null;
+    if (rec !== null && rec < 40) out.push('recovery at ' + rec + '%');
+    const m = state.mood && state.mood[today()];
+    if (m && m.mood === 'low') out.push('you marked today low');
+  } catch(e){}
+  return out;
+}
+
 function getVisibleSections() {
   // Two clean, time-ordered morning templates routed by The 4:45 Life toggle,
   // both followed by the same shared evening. Legacy REGULAR morning-mode blocks
@@ -8223,7 +8389,8 @@ function getVisibleSections() {
         tasks = tasks.map(t => t.sundayLabel ? { ...t, label: t.sundayLabel } : t);
       }
       return { ...section, tasks };
-    });
+    })
+    .filter(s => !isProtectedDay() || isEssentialSection(s));
 }
 
 function getCurrentSection() {
@@ -8237,6 +8404,17 @@ function getCurrentSection() {
     }
   }
   return null;
+}
+
+// True when this block's window had already ended by the time you were up.
+function closedBeforeWake(section) {
+  try {
+    const range = getSectionRange(section.id);
+    if (!range) return false;
+    const w = (typeof getWakeMins === 'function') ? getWakeMins() : null;
+    if (w == null) return false;
+    return range[1] < w;
+  } catch(e){ return false; }
 }
 
 function getSectionStatus(section) {
@@ -9992,9 +10170,29 @@ function showTimePicker(title, initialTime, callback) {
 }
 
 // ========== WAKE-UP LOGGING ==========
+// The wake card used to read the event log alone, so a stray phone-logged wake
+// could sit on screen contradicting WHOOP two cards below. It now follows the
+// same chain as everything else: you > WHOOP > Saumya's absence > phone.
 function getTodayWake() {
   const log = getTodayLog();
-  return log.find(e => e.eventKey === 'woke_up');
+  const logged = log.find(e => e.eventKey === 'woke_up');
+  let mins = null;
+  try { mins = (typeof getWakeMins === 'function') ? getWakeMins() : null; } catch(e){}
+  if (mins == null) return logged || null;
+  // If the authoritative time differs from the logged event by more than a
+  // few minutes, show the authoritative one and say where it came from.
+  if (logged && typeof logged.ts === 'number'){
+    const d = new Date(logged.ts);
+    const loggedMins = d.getHours()*60 + d.getMinutes();
+    if (Math.abs(loggedMins - mins) <= 5) return logged;
+  }
+  const hh = Math.floor(mins/60), mm = mins % 60;
+  const h12 = hh % 12 || 12;
+  let src = 'phone';
+  try { src = (typeof getWakeSource === 'function') ? (getWakeSource() || 'phone') : 'phone'; } catch(e){}
+  const d2 = new Date(); d2.setHours(hh, mm, 0, 0);
+  return { eventKey:'woke_up', ts:d2.getTime(), src:src,
+           time: h12 + ':' + String(mm).padStart(2,'0') + ' ' + (hh<12?'AM':'PM') };
 }
 
 function renderWakeCard() {
@@ -11302,6 +11500,380 @@ async function labDownloadPdf(date){
   } catch(err){ alert('Could not download PDF: ' + (err && err.message ? err.message : err)); }
 }
 
+
+// ============================================================================
+// SPEAK TO SAUMYA
+// Capture -> understand -> SHOW WHAT IT UNDERSTOOD -> only then write.
+// Voice transcription mangles words (it has done so for months), so nothing is
+// committed until it has been read back and accepted. That single confirm step
+// is what separates a useful button from one that quietly files wrong data.
+// ============================================================================
+var VC = { rec:null, live:false, heard:'', parsed:null, how:'rules' };
+
+function vcSupported(){
+  return typeof window !== 'undefined' &&
+    (window.SpeechRecognition || window.webkitSpeechRecognition);
+}
+
+// ---- date words -> a real date key -------------------------------------
+function vcFindDate(s){
+  var t = ' ' + s.toLowerCase() + ' ';
+  var now = new Date();
+  var mk = function(d){ return localDateKey(d); };
+  var plus = function(n){ var d = new Date(now); d.setDate(d.getDate()+n); return mk(d); };
+  if (/\bday after tomorrow\b/.test(t)) return { key:plus(2), word:'day after tomorrow' };
+  if (/\btomorrow\b|\bkal\b/.test(t))   return { key:plus(1), word:'tomorrow' };
+  if (/\btoday\b|\baaj\b|\btonight\b/.test(t)) return { key:plus(0), word:'today' };
+  if (/\bnext week\b/.test(t))          return { key:plus(7), word:'next week' };
+  var days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  for (var i=0;i<7;i++){
+    if (new RegExp('\\b'+days[i]+'\\b').test(t)){
+      var diff = (i - now.getDay() + 7) % 7; if (diff === 0) diff = 7;
+      return { key:plus(diff), word:days[i].charAt(0).toUpperCase()+days[i].slice(1) };
+    }
+  }
+  var m = t.match(/\bin (\d{1,2}) days?\b/);
+  if (m) return { key:plus(parseInt(m[1],10)), word:'in '+m[1]+' days' };
+  return null;
+}
+
+// ---- a clock time, if one was spoken -----------------------------------
+function vcFindTime(s){
+  var t = s.toLowerCase();
+  var m = t.match(/\b(?:at|by)\s*(\d{1,2})(?:[:.](\d{2}))?\s*(am|pm)?/);
+  if (!m) return null;
+  var hh = parseInt(m[1],10), mm = m[2] ? parseInt(m[2],10) : 0, ap = m[3];
+  if (ap === 'pm' && hh < 12) hh += 12;
+  if (ap === 'am' && hh === 12) hh = 0;
+  if (!ap && hh <= 7) hh += 12;              // "at 5" in his day means evening
+  if (hh > 23 || mm > 59) return null;
+  var h12 = hh % 12 || 12;
+  return { hh:hh, mm:mm, label:h12 + (mm ? ':'+('0'+mm).slice(-2) : '') + (hh<12?' AM':' PM') };
+}
+
+// ---- what kind of thing was this? --------------------------------------
+function vcParse(raw){
+  var s = (raw||'').trim();
+  var t = s.toLowerCase();
+  var when = vcFindDate(s);
+  var at   = vcFindTime(s);
+
+  // weight - a number in a plausible range, said alongside a weight word
+  var wm = t.match(/\b(\d{2,3}(?:[.,]\d)?)\s*(?:kg|kilo|kilos|kgs)?\b/);
+  if (/\bweight\b|\bweigh(ed|ing)?\b|\bkg\b|\bkilo/.test(t) && wm){
+    var w = parseFloat(wm[1].replace(',','.'));
+    if (w >= 40 && w <= 200) return { kind:'weight', value:w, note:s, when:null, at:null };
+  }
+
+  // a walk, with distance if it was mentioned
+  if (/\bwalk(ed|ing)?\b|\bsteps\b/.test(t)){
+    var km = t.match(/\b(\d{1,2}(?:[.,]\d)?)\s*(?:km|kilomet)/);
+    return { kind:'walk', value: km ? parseFloat(km[1].replace(',','.')) : null, note:s, when:null, at:null };
+  }
+
+  // a patient / case - a follow-up, an estimate, a treatment word
+  if (/\bpatient\b|\bfollow ?up\b|\bcase\b|\bimplant\b|\bestimate\b|\bcall (mr|mrs|dr|miss)\b|\brct\b|\bcrown\b|\bextraction\b/.test(t)){
+    return { kind:'case', value:null, note:s, when:when, at:at };
+  }
+
+  // something for tomorrow specifically
+  if (when && when.word === 'tomorrow'){
+    return { kind:'tomorrow', value:null, note:s, when:when, at:at };
+  }
+
+  // otherwise it is a note for today
+  return { kind:'note', value:null, note:s, when:when, at:at };
+}
+
+var VC_KINDS = [
+  { id:'note',     label:'Note' },
+  { id:'case',     label:'Patient' },
+  { id:'tomorrow', label:'Tomorrow' },
+  { id:'weight',   label:'Weight' },
+  { id:'walk',     label:'Walk' },
+  { id:'mood',     label:'Mood' }
+];
+var VC_MOODS = ['low','meh','okay','good','great'];
+
+// Ask the server to read it properly. If that is unavailable for any reason,
+// fall back to the local rules - the button must never simply stop working.
+function vcUnderstand(text){
+  var local = [vcParse(text)];
+  var urls = ['/api/voice-parse', '/.netlify/functions/voice-parse'];
+  return new Promise(function(resolve){
+    var done = false;
+    var finish = function(items, how){ if (!done){ done = true; resolve({ items:items, how:how }); } };
+    var timer = setTimeout(function(){ finish(local, 'rules'); }, 9000);
+    (function go(k){
+      if (k >= urls.length){ clearTimeout(timer); return finish(local, 'rules'); }
+      fetch(urls[k], {
+        method:'POST',
+        headers:{ 'content-type':'application/json' },
+        body: JSON.stringify({ text:text, today: today() })
+      }).then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(d){
+          if (d && d.items && d.items.length){
+            clearTimeout(timer);
+            finish(d.items.map(vcNormalise), 'saumya');
+          } else { go(k+1); }
+        })
+        .catch(function(){ go(k+1); });
+    })(0);
+  });
+}
+
+// Server items arrive with date/time as strings; give them the same shape the
+// local parser produces so one renderer and one writer handle both.
+function vcNormalise(it){
+  var o = { kind: it.kind, value: (it.value != null ? it.value : null),
+            note: it.note || '', when: null, at: null };
+  if (it.date){
+    var d = new Date(it.date + 'T12:00:00');
+    if (!isNaN(d)) {
+      var tk = today();
+      var tom = new Date(); tom.setDate(tom.getDate()+1);
+      o.when = { key: it.date,
+                 word: it.date === tk ? 'today'
+                     : it.date === localDateKey(tom) ? 'tomorrow'
+                     : d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', timeZone:'Asia/Kolkata' }) };
+    }
+  }
+  if (it.time){
+    var p = it.time.split(':');
+    var hh = parseInt(p[0],10), mm = parseInt(p[1],10);
+    if (hh >= 0 && hh <= 23){
+      var h12 = hh % 12 || 12;
+      o.at = { hh:hh, mm:mm, label: h12 + (mm ? ':'+('0'+mm).slice(-2) : '') + (hh<12?' AM':' PM') };
+    }
+  }
+  return o;
+}
+
+function vcDescribe(p){
+  if (p.kind === 'weight') return 'Logs <b>' + (p.value!=null?Number(p.value).toFixed(1)+' kg':'\u2014') + '</b> for today.';
+  if (p.kind === 'walk')   return p.value!=null ? 'Logs a <b>'+p.value+' km</b> walk today.' : 'Marks today\u2019s walk done.';
+  if (p.kind === 'mood')   return 'Records today as <b>'+(p.value||'okay')+'</b>.';
+  if (p.kind === 'case')   return 'Patient follow-up' + (p.when?' on <b>'+p.when.word+'</b>':' \u2014 no date') + (p.at?' at <b>'+p.at.label+'</b>':'') + '.';
+  if (p.kind === 'tomorrow') return 'Saved as a note for <b>tomorrow</b>.';
+  return 'Saved to today\u2019s journal.';
+}
+
+function vcRenderParsed(){
+  var list = VC.parsed; if (!list || !list.length) return;
+  document.getElementById('vcParsed').hidden = false;
+  document.getElementById('vcTitle').textContent =
+    list.length > 1 ? ('Is this right? \u00b7 ' + list.length + ' items') : 'Is this right?';
+  document.getElementById('vcHint').textContent = VC.how === 'saumya'
+    ? 'Change the type or edit the words, then Save. Nothing is written until you do.'
+    : 'Read without the server, so it may be rough. Check it before you save.';
+
+  document.getElementById('vcKinds').innerHTML = list.map(function(p, idx){
+    var body;
+    if (p.kind === 'weight' || p.kind === 'walk'){
+      body = '<input class="vc-num" type="number" step="0.1" data-vcval="'+idx+'" value="'+(p.value!=null?p.value:'')+'" placeholder="'+(p.kind==='weight'?'kg':'km')+'">';
+    } else if (p.kind === 'mood'){
+      body = '<div class="vc-moods">' + VC_MOODS.map(function(m){
+        return '<button type="button" class="vc-mood'+(p.value===m?' on':'')+'" data-vcmood="'+idx+'|'+m+'">'+m+'</button>';
+      }).join('') + '</div>';
+    } else {
+      body = '<textarea class="vc-text" rows="2" data-vcnote="'+idx+'">'+escapeHtml(p.note||'')+'</textarea>';
+    }
+    return '<div class="vc-item">' +
+      '<div class="vc-item-top">' +
+        '<select class="vc-sel" data-vckind="'+idx+'">' +
+          VC_KINDS.map(function(k){ return '<option value="'+k.id+'"'+(k.id===p.kind?' selected':'')+'>'+k.label+'</option>'; }).join('') +
+        '</select>' +
+        '<button type="button" class="vc-drop" data-vcdrop="'+idx+'" aria-label="Remove">&#10005;</button>' +
+      '</div>' + body +
+      '<div class="vc-when">' + vcDescribe(p) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function vcSetKind(idx, k){
+  var p = VC.parsed[idx]; if (!p) return;
+  p.kind = k;
+  if ((k === 'weight' || k === 'walk') && p.value == null){
+    var m = (p.note||'').match(/(\d{1,3}(?:[.,]\d)?)/);
+    if (m) p.value = parseFloat(m[1].replace(',','.'));
+  }
+  if (k === 'mood' && !VC_MOODS.includes(p.value)) p.value = 'okay';
+  vcRenderParsed();
+}
+
+// ---- commit, only from the Save button ---------------------------------
+function vcCommit(){
+  var list = VC.parsed; if (!list || !list.length) { vcClose(); return; }
+  var wrote = 0;
+  list.forEach(function(p){
+    try {
+      if (p.kind === 'weight'){
+        var w = Number(p.value);
+        if (w >= 40 && w <= 200 && typeof slSaveWeight === 'function'){ slSaveWeight(w); wrote++; }
+      } else if (p.kind === 'walk'){
+        if (!state.kmLog) state.kmLog = {};
+        if (p.value != null) state.kmLog[today()] = Number(p.value);
+        if (p.note && typeof saveJournal === 'function') saveJournal('voice_walk', p.note);
+        wrote++;
+      } else if (p.kind === 'mood'){
+        if (!state.mood) state.mood = {};
+        var dk = today();
+        if (!state.mood[dk]) state.mood[dk] = {};
+        state.mood[dk].mood = VC_MOODS.includes(p.value) ? p.value : 'okay';
+        wrote++;
+      } else if (p.kind === 'case'){
+        if (!(p.note||'').trim()) return;
+        if (!state.patientCases) state.patientCases = [];
+        state.patientCases.push({
+          id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+          note: p.note.trim() + (p.at ? ' \u00b7 ' + p.at.label : ''),
+          followUpDate: p.when ? p.when.key : null,
+          createdAt: Date.now(),
+          done: false
+        });
+        wrote++;
+      } else if (p.kind === 'tomorrow'){
+        if (!(p.note||'').trim()) return;
+        if (!state.tomorrowNotes) state.tomorrowNotes = {};
+        var d = new Date(); d.setDate(d.getDate()+1);
+        var tk = localDateKey(d);
+        var prev = state.tomorrowNotes[tk];
+        var txt = (prev && prev.text) ? (prev.text + ' \u00b7 ' + p.note.trim()) : p.note.trim();
+        state.tomorrowNotes[tk] = { text:txt, savedAt:new Date().toISOString(), savedFor:tk };
+        wrote++;
+      } else {
+        if (!(p.note||'').trim()) return;
+        if (typeof saveJournal === 'function'){
+          saveJournal('voice_' + Date.now() + '_' + Math.random().toString(36).slice(2,5), p.note.trim());
+          wrote++;
+        }
+      }
+    } catch(e){}
+  });
+  if (wrote){
+    saveState();
+    if (typeof render === 'function') { try { render(); } catch(e){} }
+  }
+  vcClose(true);
+}
+
+// ---- listening ---------------------------------------------------------
+function vcStart(){
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var sheet = document.getElementById('vcSheet');
+  sheet.hidden = false;
+  document.getElementById('vcParsed').hidden = true;
+  document.getElementById('vcTitle').textContent = 'Listening\u2026';
+  document.getElementById('vcHint').textContent =
+    'Speak naturally. Saumya will show you what it understood before saving anything.';
+  var heard = document.getElementById('vcHeard');
+  heard.className = 'vc-heard vc-dim';
+  heard.textContent = '\u2026';
+  VC.heard = ''; VC.parsed = null;
+
+  if (!vcSupported()){
+    heard.className = 'vc-heard';
+    heard.textContent = 'This browser will not give Saumya the microphone. Type it instead.';
+    VC.parsed = [{ kind:'note', value:null, note:'', when:null, at:null }];
+    VC.how = 'rules';
+    vcRenderParsed();
+    return;
+  }
+  var rec = new SR();
+  rec.lang = 'en-IN'; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+  VC.rec = rec; VC.live = true;
+  document.getElementById('vcBtn').classList.add('vc-live');
+  rec.onresult = function(ev){
+    var s = '';
+    for (var i=0;i<ev.results.length;i++) s += ev.results[i][0].transcript;
+    VC.heard = s;
+    heard.className = 'vc-heard';
+    heard.textContent = s;
+  };
+  rec.onerror = function(ev){
+    heard.className = 'vc-heard';
+    heard.textContent = (ev && ev.error === 'not-allowed')
+      ? 'Saumya needs microphone permission. Allow it in Chrome, then tap the mic again.'
+      : 'Did not catch that. Tap the mic and try once more.';
+    vcStop();
+  };
+  rec.onend = function(){
+    vcStop();
+    if (VC.heard.trim()){
+      document.getElementById('vcTitle').textContent = 'Reading it\u2026';
+      vcUnderstand(VC.heard).then(function(res){
+        VC.parsed = res.items; VC.how = res.how;
+        vcRenderParsed();
+      });
+    } else if (vcSupported()) {
+      heard.className = 'vc-heard vc-dim';
+      heard.textContent = 'Nothing heard. Tap the mic to try again.';
+    }
+  };
+  try { rec.start(); } catch(e){ vcStop(); }
+}
+
+function vcStop(){
+  VC.live = false;
+  var b = document.getElementById('vcBtn'); if (b) b.classList.remove('vc-live');
+  if (VC.rec){ try { VC.rec.stop(); } catch(e){} }
+}
+
+function vcClose(saved){
+  vcStop();
+  var sheet = document.getElementById('vcSheet');
+  if (sheet) sheet.hidden = true;
+  VC.parsed = null; VC.heard = '';
+}
+
+document.addEventListener('click', function(e){
+  const b = e.target.closest && e.target.closest('[data-pd]');
+  if (!b) return;
+  setProtectedDay(b.getAttribute('data-pd') === 'on');
+});
+
+document.addEventListener('click', function(e){
+  const b = e.target.closest && e.target.closest('[data-bright]');
+  if (b && typeof saveBright === 'function') saveBright();
+});
+
+(function vcWire(){
+  function go(){
+    var btn = document.getElementById('vcBtn');
+    if (!btn) return;
+    btn.addEventListener('click', function(){ VC.live ? vcStop() : vcStart(); });
+    document.getElementById('vcClose').addEventListener('click', function(){ vcClose(); });
+    document.getElementById('vcDiscard').addEventListener('click', function(){ vcClose(); });
+    document.getElementById('vcSave').addEventListener('click', vcCommit);
+    var kinds = document.getElementById('vcKinds');
+    kinds.addEventListener('change', function(e){
+      var s = e.target.closest('[data-vckind]');
+      if (s) vcSetKind(parseInt(s.getAttribute('data-vckind'),10), s.value);
+    });
+    kinds.addEventListener('click', function(e){
+      var m = e.target.closest('[data-vcmood]');
+      if (m){ var a = m.getAttribute('data-vcmood').split('|');
+        VC.parsed[parseInt(a[0],10)].value = a[1]; vcRenderParsed(); return; }
+      var d = e.target.closest('[data-vcdrop]');
+      if (d){ VC.parsed.splice(parseInt(d.getAttribute('data-vcdrop'),10), 1);
+        if (!VC.parsed.length) { vcClose(); return; }
+        vcRenderParsed(); }
+    });
+    kinds.addEventListener('input', function(e){
+      var n = e.target.closest('[data-vcnote]');
+      if (n){ VC.parsed[parseInt(n.getAttribute('data-vcnote'),10)].note = n.value; return; }
+      var v = e.target.closest('[data-vcval]');
+      if (v){ var num = parseFloat(v.value);
+        VC.parsed[parseInt(v.getAttribute('data-vcval'),10)].value = isNaN(num) ? null : num; }
+    });
+    document.getElementById('vcSheet').addEventListener('click', function(e){
+      if (e.target && e.target.id === 'vcSheet') vcClose();
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);
+  else go();
+})();
+
 // ---- Gentle time-awareness strip: days left in the month (calm, not urgent) ----
 // 30 April 1987 - it was already assumed inside this function, now it is stated once.
 const DOB = new Date(1987, 3, 30);
@@ -11331,6 +11903,38 @@ function renderLifeCount() {
   slot.className = 'header-lifeline' + (L.isBirthday ? ' lc-bday' : '');
   slot.innerHTML = '🪔 <b>' + L.days.toLocaleString('en-IN') +
     '</b> days <span class="lc-yr">' + L.decimal.toFixed(1) + '</span> years';
+}
+
+function renderProtected() {
+  const slot = document.getElementById('protectedSlot');
+  if (!slot) return;
+  const on = isProtectedDay();
+  const reasons = on ? [] : protectedDayReasons();
+
+  if (on) {
+    slot.innerHTML =
+      '<div class="pd-card pd-on">' +
+        '<div class="pd-title">Protected day</div>' +
+        '<div class="pd-body">Only what has to happen today. Medicines, food, ' +
+          'the clinic, and the people who matter. Everything else is still there ' +
+          'tomorrow.</div>' +
+        '<div class="pd-body pd-quiet">A smaller day is not a failed day.</div>' +
+        '<button type="button" class="pd-btn" data-pd="off">Back to the full day</button>' +
+      '</div>';
+    return;
+  }
+  if (reasons.length) {
+    const why = reasons.length === 1 ? reasons[0]
+      : reasons.slice(0, -1).join(', ') + ' and ' + reasons[reasons.length - 1];
+    slot.innerHTML =
+      '<div class="pd-card">' +
+        '<div class="pd-body">Today started with ' + why + '. ' +
+          'You can shrink the day to essentials if that would help.</div>' +
+        '<button type="button" class="pd-btn" data-pd="on">Make today a protected day</button>' +
+      '</div>';
+    return;
+  }
+  slot.innerHTML = '<div class="pd-thin"><button type="button" class="pd-link" data-pd="on">Not a full-day kind of day \u2192</button></div>';
 }
 
 function renderTimeStrip(){
@@ -11407,6 +12011,51 @@ function renderNowCard() {
       }, 80);
     };
   });
+}
+
+function renderBright() {
+  const card = $("brightCard");
+  if (!card) return;
+  const hr = new Date().getHours();
+  if (hr < 21) { card.classList.remove("show"); return; }   // evenings only
+  card.classList.add("show");
+  if (!state.brightSpots) state.brightSpots = {};
+  const todayKey = today();
+  const todays = state.brightSpots[todayKey];
+  const input = $("brightInput");
+  const saveBtn = card.querySelector('[data-bright="save"]');
+
+  if (todays) {
+    $("brightSub").innerHTML = '<div class="bright-saved">“' + escapeHtml(todays) + '”</div>';
+    if (input) input.style.display = 'none';
+    if (saveBtn) saveBtn.textContent = 'Change it';
+    if (saveBtn) saveBtn.onclick = function(){ if(input){ input.style.display=''; input.value=todays; input.focus(); } $("brightSub").textContent='One good thing from today — however small.'; };
+  } else {
+    if (input) input.style.display = '';
+  }
+
+  // A random bright spot from before today - the gratitude timeline, looking back.
+  const keys = Object.keys(state.brightSpots).filter(k => k !== todayKey);
+  if (keys.length) {
+    const k = keys[Math.floor(Math.random() * keys.length)];
+    const d = new Date(k + 'T12:00:00');
+    const nice = d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', timeZone:'Asia/Kolkata' });
+    $("brightPast").innerHTML = '<div class="bp-row"><span class="bp-date">' + nice +
+      '</span><br>“' + escapeHtml(state.brightSpots[k]) + '”</div>';
+  } else {
+    $("brightPast").innerHTML = '';
+  }
+}
+
+function saveBright() {
+  const input = $("brightInput");
+  if (!input) return;
+  const v = (input.value || '').trim();
+  if (!v) return;
+  if (!state.brightSpots) state.brightSpots = {};
+  state.brightSpots[today()] = v;
+  saveState();
+  renderBright();
 }
 
 function renderRecap() {
@@ -12204,7 +12853,7 @@ function renderAppB() {
   };
   setTriadText('bNowText', ab.triad.now, "Tap to set what's in front of you");
   setTriadText('bNextText', ab.triad.next, "Tap to set what's coming");
-  setTriadText('bDangerText', ab.triad.danger, "What could ruin today if ignored?");
+  setTriadText('bDangerText', ab.triad.danger, "One thing that would make today feel in control?");
 
   // Organ badges (each shows count of "open" or "today" items)
   const openFires = ab.fires.filter(f => !f.resolvedAt);
@@ -12352,7 +13001,7 @@ let bTriadEditField = null;
 function openTriadEdit(field) {
   ensureAppB();
   bTriadEditField = field;
-  const labels = { now: 'NOW — what\'s in front of you', next: 'NEXT — what\'s coming', danger: 'DANGER — what could ruin today' };
+  const labels = { now: 'NOW — what\'s in front of you', next: 'NEXT — what\'s coming', danger: "TODAY'S FOOTING — one thing that steadies today" };
   $('bTriadEditTitle').textContent = labels[field];
   $('bTriadEditInput').value = state.appB.triad[field] || '';
   $('bTriadEditOverlay').classList.add('show');
@@ -14539,6 +15188,7 @@ function render() {
   renderModeBanner();
   renderTimeStrip();
   renderLifeCount();
+  renderProtected();
   renderHolidayPrompt();
   renderVitDBanner();
   renderLabRecords();
@@ -14551,6 +15201,7 @@ function render() {
   renderGuidance();
   renderDayShape();
   renderRecap();
+  renderBright();
   renderWeeklyReport();
   renderEnergyStreak();
   renderClinicBlock();
@@ -14581,13 +15232,34 @@ function render() {
   $("celebration").classList.toggle("show", pct === 100 && total > 0);
   updateAuroraFromDay();
 
-  $("daysTracked").textContent = Object.keys(state.history).length;
-  $("totalPerfect").textContent = Object.values(state.history).filter(Boolean).length;
-  // Med adherence
-  const adh7 = getMedAdherence(7);
-  const adh30 = getMedAdherence(30);
-  $("medAdherence7").textContent = adh7 ? `${adh7.pct}%` : "—";
-  $("medAdherence30").textContent = adh30 ? `${adh30.pct}%` : "—";
+  // A bold gold 0 and a red 0% read as marks out of ten. When there is simply
+  // nothing logged behind a number, show a dash in grey and let it be quiet.
+  (function(){
+    const setStat = function(id, value, hasData){
+      const el = $(id); if (!el) return;
+      el.textContent = hasData ? value : '—';
+      el.classList.toggle('stat-empty', !hasData);
+    };
+    const tracked = Object.keys(state.history).length;
+    const perfect = Object.values(state.history).filter(Boolean).length;
+    setStat("daysTracked", tracked, tracked > 0);
+    setStat("totalPerfect", perfect, perfect > 0);
+    // Showed-up days: you were here and you tried, perfect or not.
+    let enough = 0;
+    try {
+      const days = new Set();
+      Object.keys(state.history || {}).forEach(k => days.add(k));
+      Object.keys(state.brightSpots || {}).forEach(k => days.add(k));
+      Object.keys(state.journal || {}).forEach(k => days.add(k));
+      Object.keys(state.mood || {}).forEach(k => days.add(k));
+      days.forEach(k => { if (k) enough++; });
+    } catch(e){}
+    setStat("totalEnough", enough, enough > 0);
+    const adh7 = getMedAdherence(7);
+    const adh30 = getMedAdherence(30);
+    setStat("medAdherence7",  adh7  ? adh7.pct  + '%' : '', !!(adh7  && adh7.pct  > 0));
+    setStat("medAdherence30", adh30 ? adh30.pct + '%' : '', !!(adh30 && adh30.pct > 0));
+  })();
   $("footerText").textContent = getCurrentFooter();
   renderPatternInsight();
 
@@ -14674,6 +15346,12 @@ function render() {
         progressLabel = sTotal > 0 && sDone === sTotal ? '✓ ALL TAKEN' : `${sDone}/${sTotal}`;
       } else {
         progressLabel = sTotal > 0 && sDone === sTotal ? '✓ DONE' : `${sDone}/${sTotal}`;
+      }
+      // A block that had already closed before you woke was never yours to do.
+      // Scoring already excludes it; the card should stop showing it as 0/6.
+      if (sDone === 0 && typeof closedBeforeWake === 'function' && closedBeforeWake(section)) {
+        progressLabel = '—';
+        sectionEl.classList.add('before-wake');
       }
       sectionEl.innerHTML = `
         <div class="section-head" data-section="${section.id}">
@@ -16092,7 +16770,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v10.60 · 19-Jul";
+const SAUMYA_BUILD = "v10.67 · 20-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
@@ -16764,6 +17442,56 @@ body.app-b-active #dayShape, body.app-c-active #dayShape{display:none !important
 /* ===== Clinic-day note ===== */
 /* Sits directly under the days-left line, same weight, one notch quieter. */
 /* Weight, collapsed to a single line until a check is due. */
+/* Speak to Saumya - capture, then confirm. Nothing is written until you tap Save. */
+#vcBtn{position:fixed;right:16px;bottom:150px;width:52px;height:52px;border-radius:50%;
+  border:1px solid rgba(251,191,36,.40);background:linear-gradient(160deg,#1b1608,#0d0f18);
+  color:#fbbf24;display:flex;align-items:center;justify-content:center;z-index:60;
+  box-shadow:0 6px 20px rgba(0,0,0,.45);cursor:pointer;padding:0;}
+#vcBtn .vc-mic{width:23px;height:23px;fill:currentColor;stroke:currentColor;}
+#vcBtn .vc-ring{position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(251,191,36,.55);
+  opacity:0;pointer-events:none;}
+#vcBtn.vc-live{border-color:rgba(251,191,36,.9);}
+#vcBtn.vc-live .vc-ring{animation:vcPulse 1.5s ease-out infinite;}
+@keyframes vcPulse{0%{opacity:.75;transform:scale(1)}100%{opacity:0;transform:scale(1.5)}}
+.vc-sheet{position:fixed;inset:0;z-index:120;background:rgba(4,6,12,.72);
+  display:flex;align-items:flex-end;justify-content:center;}
+.vc-sheet[hidden]{display:none;}
+.vc-panel{width:100%;max-width:560px;background:#0c111f;border:1px solid rgba(251,191,36,.18);
+  border-bottom:0;border-radius:20px 20px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));}
+.vc-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.vc-title{font-size:12px;letter-spacing:2.4px;text-transform:uppercase;font-weight:700;
+  color:rgba(251,191,36,.85);}
+.vc-x{margin-left:auto;background:none;border:0;color:rgba(240,236,228,.45);font-size:17px;cursor:pointer;}
+.vc-heard{font-family:'Cormorant Garamond','Cormorant Garamond Fallback',serif;font-size:19px;
+  font-style:italic;line-height:1.45;color:#f0ece4;min-height:30px;}
+.vc-heard.vc-dim{color:rgba(240,236,228,.42);}
+.vc-parsed{margin-top:14px;}
+.vc-kinds{display:block;}
+.vc-item{border:1px solid rgba(255,255,255,.08);border-radius:13px;padding:10px 11px;margin-bottom:9px;
+  background:rgba(255,255,255,.018);}
+.vc-item-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.vc-sel{background:rgba(251,191,36,.10);border:1px solid rgba(251,191,36,.32);color:#f8d98d;
+  border-radius:999px;padding:5px 10px;font:inherit;font-size:11.5px;font-weight:700;}
+.vc-drop{margin-left:auto;background:none;border:0;color:rgba(240,236,228,.35);font-size:14px;cursor:pointer;}
+.vc-num{width:110px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);
+  border-radius:10px;padding:9px 11px;color:#f0ece4;font:inherit;font-size:14px;}
+.vc-moods{display:flex;gap:6px;flex-wrap:wrap;}
+.vc-mood{font-size:11.5px;font-weight:700;padding:6px 11px;border-radius:999px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.03);color:rgba(240,236,228,.55);}
+.vc-mood.on{border-color:rgba(251,191,36,.55);background:rgba(251,191,36,.12);color:#f8d98d;}
+.vc-kind{font-size:11.5px;font-weight:700;padding:6px 11px;border-radius:999px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.03);
+  color:rgba(240,236,228,.55);}
+.vc-kind.on{border-color:rgba(251,191,36,.55);background:rgba(251,191,36,.12);color:#f8d98d;}
+.vc-text{width:100%;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);
+  border-radius:11px;padding:10px 12px;color:#f0ece4;font:inherit;font-size:14px;resize:vertical;}
+.vc-when{margin-top:8px;font-size:12px;color:rgba(240,236,228,.55);}
+.vc-when b{color:#f8d98d;}
+.vc-acts{display:flex;gap:9px;margin-top:13px;}
+.vc-cancel,.vc-save{flex:1;padding:11px;border-radius:12px;font-size:13.5px;font-weight:700;cursor:pointer;}
+.vc-cancel{border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(240,236,228,.6);}
+.vc-save{border:1px solid rgba(251,191,36,.55);background:rgba(251,191,36,.16);color:#f8d98d;}
+.vc-hint{margin-top:11px;font-size:11px;line-height:1.5;color:rgba(240,236,228,.36);}
 .wt-mini{display:flex;align-items:center;gap:9px;margin:10px 0 2px;padding:9px 13px;
   border-radius:12px;cursor:pointer;border:1px solid rgba(255,255,255,.06);
   background:rgba(255,255,255,.022);}
@@ -16779,6 +17507,21 @@ body.app-b-active #dayShape, body.app-c-active #dayShape{display:none !important
 .wtg-base{stroke:rgba(255,255,255,.20);stroke-width:1;stroke-dasharray:3 4;}
 .wtg-axis{display:flex;justify-content:space-between;margin-top:5px;
   font-size:10px;color:rgba(240,236,228,.38);}
+/* Protected day - fewer demands, stated plainly, one tap either way. */
+#protectedSlot{margin:12px 16px 0;}
+.pd-card{border:1px solid rgba(148,163,184,.16);border-radius:15px;padding:13px 14px;
+  background:rgba(255,255,255,.022);}
+.pd-card.pd-on{border-color:rgba(94,234,212,.30);background:rgba(45,212,191,.055);}
+.pd-title{font-size:11px;letter-spacing:2.6px;text-transform:uppercase;font-weight:700;
+  color:#5eead4;margin-bottom:6px;}
+.pd-body{font-size:12.5px;line-height:1.55;color:rgba(240,236,228,.68);}
+.pd-quiet{margin-top:5px;color:rgba(240,236,228,.42);font-style:italic;}
+.pd-btn{margin-top:10px;width:100%;padding:9px;border-radius:11px;cursor:pointer;
+  font:inherit;font-size:12.5px;font-weight:700;
+  border:1px solid rgba(94,234,212,.32);background:rgba(45,212,191,.10);color:#5eead4;}
+.pd-thin{text-align:center;}
+.pd-link{background:none;border:0;cursor:pointer;font:inherit;font-size:11px;
+  color:rgba(240,236,228,.28);padding:4px;}
 .header-lifeline{font-size:11.5px;margin-top:2px;letter-spacing:.3px;font-weight:600;
   color:rgba(251,215,150,.55);font-variant-numeric:tabular-nums;}
 .header-lifeline b{color:rgba(251,191,36,.82);font-weight:700;}
@@ -17084,9 +17827,21 @@ body.app-b-active #saumyaLife, body.app-c-active #saumyaLife { display:none !imp
       var s=encodeURIComponent(SL_SECRET);
       fetch('/api/whoop-recovery?secret='+s).then(function(r){return r.ok?r.json():null;}).then(function(d){ if(d&&d.connected){ liveData.whoop=d;
         // sleepEnd is when the band judged you left sleep - the best wake time there is
-        try{ if(d.sleepEnd && state.whoopSleepEnd!==d.sleepEnd){
-          state.whoopSleepEnd=d.sleepEnd; state.whoopSleepStart=d.sleepStart||null;
-          state.whoopSleepHrs=(typeof d.sleepHrs==='number')?d.sleepHrs:null; saveState(); } }catch(e){}
+        // Park everything the scoring code needs. This used to run only when
+        // sleepEnd CHANGED, so a nap recorded later the same morning never
+        // arrived - the night sleep was already stored, so the branch was skipped.
+        try{
+          var _ch=false;
+          var _set=function(k,v){ if(state[k]!==v){ state[k]=v; _ch=true; } };
+          if(d.sleepEnd) _set('whoopSleepEnd', d.sleepEnd);
+          _set('whoopLastSleepEnd', d.lastSleepEnd || d.sleepEnd || null);
+          _set('whoopSleepStart', d.sleepStart || null);
+          _set('whoopSleepHrs', (typeof d.sleepHrs==='number') ? d.sleepHrs : null);
+          _set('whoopRecovery', (typeof d.recovery==='number') ? d.recovery : null);
+          var _naps=(Array.isArray(d.naps) && d.naps.length) ? d.naps : null;
+          if(JSON.stringify(state.whoopNaps||null)!==JSON.stringify(_naps)){ state.whoopNaps=_naps; _ch=true; }
+          if(_ch) saveState();
+        }catch(e){}
         try{ if(typeof renderDayShape==='function') renderDayShape(); }catch(e){}
         renderAll(); } }).catch(function(){});
       fetch('/api/strava-sync?secret='+s).then(function(r){return r.ok?r.json():null;}).then(function(d){ if(d&&d.connected){ liveData.strava=d; renderAll(); } }).catch(function(){});
@@ -17422,6 +18177,33 @@ body.app-b-active #saumyaLife, body.app-c-active #saumyaLife { display:none !imp
 <script>(function(){function moonPhase(d){var s=29.530588853,r=Date.UTC(2000,0,6,18,14)/86400000,dy=d.getTime()/86400000;return((((dy-r)%s)+s)%s)/s;}function placeSky(){var el=document.getElementById("skyBody");if(!el)return;var n=new Date();var hf=n.getHours()+n.getMinutes()/60;var sr=6,ss=18;var day=(hf>=sr&&hf<ss);var p;if(day){p=(hf-sr)/(ss-sr);}else{var nh=(hf<sr)?hf+24:hf;p=(nh-ss)/((sr+24)-ss);}p=Math.max(0,Math.min(1,p));var arc=Math.sin(p*Math.PI);el.style.setProperty("--sky-y",(38-arc*30).toFixed(1)+"px");el.style.setProperty("--sky-x",(1+p*5).toFixed(1)+"%");el.classList.toggle("is-day",day);el.classList.toggle("is-night",!day);var ph=moonPhase(n);var tx=(ph<=0.5)?(23-ph*108):(23+(1-ph)*108);el.style.setProperty("--term-x",tx.toFixed(1)+"px");}if(document.readyState!=="loading")placeSky();else document.addEventListener("DOMContentLoaded",placeSky);setInterval(placeSky,120000);document.addEventListener("visibilitychange",function(){if(!document.hidden)placeSky();});})();</script>
 <div id="pinPad" class="pinpad-overlay" hidden aria-hidden="true"><div class="pinpad-card"><div class="pinpad-title" id="pinPadTitle">Enter PIN</div><div class="pinpad-dots" id="pinPadDots"></div><div class="pinpad-grid"><button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button><button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button><button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button><button type="button" data-k="del" class="pinpad-alt">⌫</button><button type="button" data-k="0">0</button><button type="button" data-k="ok" class="pinpad-alt pinpad-ok">✓</button></div><button type="button" class="pinpad-cancel" data-k="cancel">Cancel</button></div></div>
 <div id="alertPop" class="alertpop-overlay" hidden aria-hidden="true"><div class="alertpop-card"><div class="alertpop-title" id="alertPopTitle">Vitamin D — this week</div><div class="alertpop-msg" id="alertPopMsg">Take your weekly Uprise D3 60000 capsule. Easy to miss — this stays until you tap Taken.</div><button type="button" class="alertpop-yes" id="alertPopYes">&#10003; Taken</button><button type="button" class="alertpop-later" id="alertPopLater">Remind me tomorrow</button></div></div>
+<button id="vcBtn" type="button" aria-label="Speak to Saumya">
+  <svg viewBox="0 0 24 24" class="vc-mic" aria-hidden="true">
+    <path d="M12 14.5a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5.5a3 3 0 0 0 3 3Z"/>
+    <path d="M18 11.5a6 6 0 0 1-12 0" fill="none" stroke-width="2" stroke-linecap="round"/>
+    <path d="M12 17.5V21" fill="none" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+  <span class="vc-ring"></span>
+</button>
+
+<div id="vcSheet" class="vc-sheet" hidden>
+  <div class="vc-panel">
+    <div class="vc-head">
+      <div class="vc-title" id="vcTitle">Listening\u2026</div>
+      <button type="button" class="vc-x" id="vcClose" aria-label="Close">&#10005;</button>
+    </div>
+    <div class="vc-heard" id="vcHeard"></div>
+    <div class="vc-parsed" id="vcParsed" hidden>
+      <div class="vc-kinds" id="vcKinds"></div>
+      <div class="vc-acts">
+        <button type="button" class="vc-cancel" id="vcDiscard">Discard</button>
+        <button type="button" class="vc-save" id="vcSave">Save</button>
+      </div>
+    </div>
+    <div class="vc-hint" id="vcHint">Speak naturally. Saumya will show you what it understood before saving anything.</div>
+  </div>
+</div>
+
 <button id="floatTab" type="button" aria-label="Switch tab" data-target="B"><span class="floattab-arrow">&#8644;</span><span id="floatTabLabel">Clinic</span></button>
 </body>
 </html>
