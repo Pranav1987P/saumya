@@ -1,4 +1,4 @@
-// Saumya — live SURGICAL research feed (zygoma / pterygoid / graftless full-arch).
+// Saumya — live SURGICAL research feed (zygoma / pterygoid / paranasal / graftless full-arch).
 // Searches PubMed for clinically-relevant papers in Pranav's niche, then pulls each
 // paper's CONCLUSION from the abstract so the feed shows the surgical takeaway,
 // not just the title. Free, no API key. Runs server-side (no CORS). Netlify caches 6h.
@@ -8,6 +8,9 @@
 const TERM =
   '(zygomatic implant*[tiab] OR pterygoid implant*[tiab] OR "quad zygoma"[tiab] ' +
   'OR "quad zygomatic"[tiab] OR subperiosteal implant*[tiab] ' +
+  // paranasal / pyriform-rim / transnasal family (Bernardis' graftless maxilla work)
+  'OR paranasal implant*[tiab] OR transnasal implant*[tiab] ' +
+  'OR "pyriform rim"[tiab] OR "piriform rim"[tiab] ' +
   'OR (atrophic maxilla*[tiab] AND implant*[tiab]) ' +
   'OR (edentulous maxilla*[tiab] AND (zygoma*[tiab] OR pterygoid[tiab]))) ' +
   'NOT "quality of life"[ti] NOT "in vitro"[ti] NOT survey[ti] NOT questionnaire[ti]';

@@ -150,6 +150,36 @@ export default async (req) => {
       .filter(s => s && s.nap !== true)
       .sort((a, b) => parseTime(b.end || b.start) - parseTime(a.end || a.start));
     const slp = nights[0] || slpArr[0] || null;
+
+    // Naps were being discarded here, which meant a morning like "up at 7:30,
+    // back down at 8:45, properly up at 11:30" reached Saumya as a single night
+    // ending at 7:58 — and the day was then scored from a time he was still
+    // asleep. Naps are kept now, and lastSleepEnd answers the only question the
+    // app really needs: when did your last sleep of any kind end.
+    const IST_OFFSET_MS = 5.5 * 3600000;
+    const istKey = (ms) => new Date(ms + IST_OFFSET_MS).toISOString().slice(0, 10);
+    const todayIst = istKey(Date.now());
+
+    const napsToday = slpArr
+      .filter(s => s && s.nap === true && s.end && istKey(parseTime(s.end)) === todayIst)
+      .sort((a, b) => parseTime(a.end) - parseTime(b.end))
+      .map(s => {
+        const st = s.score && s.score.stage_summary ? s.score.stage_summary : {};
+        const asleepMs = (num(st.total_light_sleep_time_milli) || 0)
+                       + (num(st.total_slow_wave_sleep_time_milli) || 0)
+                       + (num(st.total_rem_sleep_time_milli) || 0);
+        return {
+          start: s.start || null,
+          end: s.end || null,
+          hrs: asleepMs > 0 ? Math.round((asleepMs / 3600000) * 100) / 100 : null
+        };
+      });
+
+    // The latest end across night sleep and naps.
+    let lastSleepEnd = (slp && slp.end) || null;
+    for (const n of napsToday) {
+      if (n.end && (!lastSleepEnd || parseTime(n.end) > parseTime(lastSleepEnd))) lastSleepEnd = n.end;
+    }
     const resps = nights.map(s => num(s.score && s.score.respiratory_rate)).filter(v => v !== null);
 
     // --- Derived deductions (only when there's enough history to be honest) ---
@@ -226,7 +256,9 @@ export default async (req) => {
       calories: calories,
       // sleep (last night)
       sleepStart: (slp && slp.start) || null,   // ISO — when sleep began
-      sleepEnd: (slp && slp.end) || null,       // ISO — when sleep ended
+      sleepEnd: (slp && slp.end) || null,       // ISO — when the night sleep ended
+      naps: napsToday,                           // today's naps, oldest first
+      lastSleepEnd: lastSleepEnd,                // ISO — end of the LAST sleep of any kind
       sleepHrs: sleepHrs,                        // hours actually asleep
       timeInBedMin: toMin(stg.total_in_bed_time_milli),
       awakeMin: toMin(stg.total_awake_time_milli),
