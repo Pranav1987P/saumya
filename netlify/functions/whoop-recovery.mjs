@@ -65,13 +65,23 @@ async function latest(accessToken, paths) {
 
 // A page of records (newest first) from a WHOOP collection. Same v2->v1 fallback
 // as latest(). Returns [] when unavailable so the derived signals just go null.
-async function series(accessToken, bases, limit) {
+async function series(accessToken, bases, limit, pages = 1) {
   for (const base of bases) {
     const sep = base.includes("?") ? "&" : "?";
-    const resp = await fetch(API + base + sep + "limit=" + limit, { headers: { Authorization: `Bearer ${accessToken}` } });
-    if (resp.status === 200) { const d = await resp.json(); return (d && d.records) || []; }
-    if (resp.status === 401) throw new Error("unauthorized");
-    // 403/404/429/400: try next path, then give up gracefully
+    let out = [], token = null, ok = false;
+    for (let p = 0; p < pages; p++) {
+      const u = API + base + sep + "limit=" + limit + (token ? "&nextToken=" + encodeURIComponent(token) : "");
+      const resp = await fetch(u, { headers: { Authorization: `Bearer ${accessToken}` } });
+      if (resp.status === 200) {
+        ok = true;
+        const d = await resp.json();
+        out = out.concat((d && d.records) || []);
+        token = d && d.next_token;
+        if (!token) break;
+      } else if (resp.status === 401) { throw new Error("unauthorized"); }
+      else break; // 403/404/429/400: try next base, then give up gracefully
+    }
+    if (ok) return out;
   }
   return [];
 }
@@ -84,7 +94,7 @@ async function pullAll(accessToken) {
   let [recArr, cyc, slpArr] = await Promise.all([
     series(accessToken, ["/v2/recovery", "/v1/recovery"], HIST),
     latest(accessToken, ["/v2/cycle?limit=1", "/v1/cycle?limit=1"]),
-    series(accessToken, ["/v2/activity/sleep", "/v1/activity/sleep"], HIST)
+    series(accessToken, ["/v2/activity/sleep", "/v1/activity/sleep"], HIST, 2)
   ]);
   // If a history page came back empty, never regress below the old single-record
   // behaviour — fall back to one latest record so today's readout still shows.
@@ -175,6 +185,26 @@ export default async (req) => {
         };
       });
 
+    // --- 30-day sleep chart data: asleep hours per IST day, naps separate ---
+    // A record's day = the IST date its sleep ENDED (the morning you woke).
+    // Asleep time from stage summary; if unscored yet, fall back to end-start.
+    const histMap = {};
+    for (const s of slpArr) {
+      if (!s || !s.end) continue;
+      const key = istKey(parseTime(s.end));
+      const st2 = s.score && s.score.stage_summary ? s.score.stage_summary : {};
+      let ms = (num(st2.total_light_sleep_time_milli) || 0)
+             + (num(st2.total_slow_wave_sleep_time_milli) || 0)
+             + (num(st2.total_rem_sleep_time_milli) || 0);
+      if (!(ms > 0)) { const a = parseTime(s.start), b = parseTime(s.end); if (a && b && b > a) ms = b - a; }
+      if (!(ms > 0)) continue;
+      const hrs = Math.round(ms / 36000) / 100;
+      const e = histMap[key] || (histMap[key] = { d: key, night: 0, nap: 0 });
+      if (s.nap === true) e.nap = Math.round((e.nap + hrs) * 100) / 100;
+      else e.night = Math.round((e.night + hrs) * 100) / 100;
+    }
+    const history = Object.values(histMap).sort((a, b) => (a.d < b.d ? -1 : 1)).slice(-30);
+
     // The latest end across night sleep and naps.
     let lastSleepEnd = (slp && slp.end) || null;
     for (const n of napsToday) {
@@ -258,6 +288,7 @@ export default async (req) => {
       sleepStart: (slp && slp.start) || null,   // ISO — when sleep began
       sleepEnd: (slp && slp.end) || null,       // ISO — when the night sleep ended
       naps: napsToday,                           // today's naps, oldest first
+      history: history,                          // last 30 IST days: {d, night, nap} hrs
       lastSleepEnd: lastSleepEnd,                // ISO — end of the LAST sleep of any kind
       sleepHrs: sleepHrs,                        // hours actually asleep
       timeInBedMin: toMin(stg.total_in_bed_time_milli),
