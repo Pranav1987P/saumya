@@ -16987,7 +16987,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v10.86 · 24-Jul";
+const SAUMYA_BUILD = "v10.89 · 24-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
@@ -18351,9 +18351,9 @@ body.app-b-active #saumyaLife, body.app-c-active #saumyaLife { display:none !imp
   function implantLogState(){ var st=load(IMPLOG_KEY,{entries:[]}); if(!st||!Array.isArray(st.entries)) st={entries:[]}; return st; }
   function implantLogTotal(){ var st=implantLogState(),t=0; for(var i=0;i<st.entries.length;i++){ var n=parseInt(st.entries[i].n,10); if(!isNaN(n)&&n>0) t+=n; } return t; }
   function implantLogFmt(d){ try{ var p=String(d).split('-'); if(p.length!==3) return String(d); var M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return parseInt(p[2],10)+' '+M[parseInt(p[1],10)-1]; }catch(e){ return String(d); } }
-  function implantLogAdd(){ var di=document.getElementById('slImpLogDate'),ni=document.getElementById('slImpLogNum'); if(!di||!ni) return; var d=di.value||dayKey(); var n=parseInt(ni.value,10); if(isNaN(n)||n<1){ try{ni.focus();}catch(e){} return; } if(n>60) n=60; var st=implantLogState(); st.entries.push({d:d,n:n}); st.entries.sort(function(a,b){ return (a.d<b.d)?1:((a.d>b.d)?-1:0); }); save(IMPLOG_KEY,st); renderAll(); }
+  function implantLogAdd(){ var di=document.getElementById('slImpLogDate'),ni=document.getElementById('slImpLogNum'); if(!di||!ni) return; var d=di.value||dayKey(); var n=parseInt(ni.value,10); if(isNaN(n)||n<1){ try{ni.focus();}catch(e){} return; } if(n>60) n=60; var st=implantLogState(); var ptEl=document.getElementById('slImpLogNote'), siEl=document.getElementById('slImpLogSite'); var pt=(ptEl&&ptEl.value?String(ptEl.value):'').trim().slice(0,24); var site=(siEl&&siEl.value?String(siEl.value):'').trim().slice(0,30); var ent={d:d,n:n}; if(pt) ent.pt=pt; if(site) ent.site=site; st.entries.push(ent); st.entries.sort(function(a,b){ return (a.d<b.d)?1:((a.d>b.d)?-1:0); }); save(IMPLOG_KEY,st); renderAll(); }
   function implantLogRemove(idx){ var st=implantLogState(); if(idx>=0&&idx<st.entries.length){ st.entries.splice(idx,1); save(IMPLOG_KEY,st); renderAll(); } }
-  function implantTally(){ var st=implantLogState(), total=implantLogTotal(), td=dayKey(); var rows=''; for(var i=0;i<st.entries.length;i++){ var e=st.entries[i]; rows+='<div class="iw-trow"><span class="iw-tdate">'+esc(implantLogFmt(e.d))+'</span><span class="iw-tn">+'+esc(e.n)+'</span><span class="iw-tx" data-sl-implog="del:'+i+'">remove</span></div>'; } if(!rows) rows='<div class="iw-tempty">No implants logged yet - add your first case below.</div>'; return '<div class="iw-tally"><div class="iw-tnum">'+total+'</div><div class="iw-tlabel">implants placed since <b>1 Jul 2026</b></div><div class="iw-tsub">500+ already in your hands - this counts the new chapter.</div><div class="iw-tform"><input type="date" id="slImpLogDate" class="iw-tin iw-tdatein" value="'+td+'" max="'+td+'"><input type="number" id="slImpLogNum" class="iw-tin iw-tnumin" inputmode="numeric" min="1" max="60" placeholder="#"><button type="button" class="iw-tadd" data-sl-implog="add">Add</button></div><div class="iw-thist">'+rows+'</div></div>'; }
+  function implantTally(){ var st=implantLogState(), total=implantLogTotal(), td=dayKey(); var rows=''; for(var i=0;i<st.entries.length;i++){ var e=st.entries[i]; rows+='<div class="iw-trow"><span class="iw-tdate">'+esc(implantLogFmt(e.d))+'</span><span class="iw-tn">+'+esc(e.n)+'</span><span class="iw-tnote">'+esc([e.pt,e.site].filter(Boolean).join(' · ')||e.note||'')+'</span><span class="iw-tx" data-sl-implog="del:'+i+'">remove</span></div>'; } if(!rows) rows='<div class="iw-tempty">No implants logged yet - add your first case below.</div>'; return '<div class="iw-tally"><div class="iw-tnum">'+total+'</div><div class="iw-tlabel">implants placed since <b>1 Jul 2026</b></div><div class="iw-tsub">500+ already in your hands - this counts the new chapter.</div><div class="iw-tform2"><div class="iw-tf"><label>Patient</label><input type="text" id="slImpLogNote" class="iw-tin" maxlength="24" placeholder="Short name"></div><div class="iw-tf"><label>Tooth · arch · segment</label><input type="text" id="slImpLogSite" class="iw-tin" maxlength="30" placeholder="36 46 · upper arch"></div><div class="iw-tfrow"><div class="iw-tf iw-tfn"><label>Implants</label><input type="number" id="slImpLogNum" class="iw-tin" inputmode="numeric" min="1" max="60" placeholder="#"></div><div class="iw-tf iw-tfd"><label>Date</label><input type="date" id="slImpLogDate" class="iw-tin" value="'+td+'" max="'+td+'"></div><button type="button" class="iw-tadd" data-sl-implog="add">Add</button></div></div><div class="iw-thist">'+rows+'</div></div>'; }
   function implantSpotRefresh(){ var st=impState(); st.spotOffset=((st.spotOffset||0)+1); save(IMP_KEY,st); renderAll(); }
   var PUBMED_KEY='saumyaPubmedV1';
   function pubmedState(){ var s=load(PUBMED_KEY,{papers:[],ts:0}); if(!s||!Array.isArray(s.papers)) s={papers:[],ts:0}; return s; }
@@ -18490,6 +18490,7 @@ body.app-b-active #saumyaLife, body.app-c-active #saumyaLife { display:none !imp
            var lE=(typeof _todayEvt==='function')?_todayEvt('left_clinic'):null; if(lE&&lE.ts) r.cout=_skMins(lE.ts); }catch(e){}
       try{ var ms=load(MED_KEY,{date:'',done:{}}); if(ms&&ms.date===tk&&ms.done){ var mi=[].concat(MEDS.morning.items,MEDS.night.items).map(function(i){return i.id;}); var mdone=mi.filter(function(id){return ms.done[id];}).length; if(mdone>0){ r.meds=mdone; r.medsT=mi.length; } } }catch(e){}
       try{ if(state.weight&&typeof state.weight[tk]==='number') r.wt=state.weight[tk]; }catch(e){}
+      try{ var il=load(IMPLOG_KEY,{entries:[]}); var isum=0; (il.entries||[]).forEach(function(en){ if(en.d===tk){ var nn=parseInt(en.n,10); if(!isNaN(nn)&&nn>0) isum+=nn; } }); if(isum>0) r.imp=isum; }catch(e){}
       try{ var L2=(state.saumyaLog||{})[tk]||[]; var hn=null; L2.forEach(function(ev){ if(ev.eventKey==='arrived_home') hn=ev; }); if(hn&&hn.ts) r.hin=_skMins(hn.ts); }catch(e){}
       var ks=Object.keys(B.days).sort(); while(ks.length>120){ delete B.days[ks.shift()]; ch=true; }
       if(JSON.stringify(r)!==before) ch=true;
@@ -18677,6 +18678,7 @@ body.app-b-active #saumyaLife, body.app-c-active #saumyaLife { display:none !imp
     if(typeof r.hin==='number')p.push('home'+_skHM(r.hin));
     if(typeof r.meds==='number')p.push('meds'+r.meds+'/'+r.medsT);
     if(typeof r.wt==='number')p.push(r.wt+'kg');
+    if(typeof r.imp==='number')p.push('implants'+r.imp);
     if(r.ask)p.push('asked:'+r.ask.id+'>'+r.ask.ans);
     if(r.dayOff)p.push('dayoff');
     return k.slice(5)+' '+p.join(' ');
@@ -18695,7 +18697,7 @@ body.app-b-active #saumyaLife, body.app-c-active #saumyaLife { display:none !imp
       if(typeof w.respBaseline==='number')base.push('Resp~'+w.respBaseline);
       var lines=ks.slice(-21).map(function(k){ return _mindFmtDay(k,B[k]||{}); });
       return head+(base.length?('\nHis baselines: '+base.join(' ')):'')
-        +'\nLegend: rec=recovery% hrv=ms slp=sleep-hours wake/clin/home=IST-times km=walked meds=taken/total'
+        +'\nLegend: rec=recovery% hrv=ms slp=sleep-hours wake/clin/home=IST-times km=walked meds=taken/total implants=placed'
         +'\nHis last days, oldest first:\n'+lines.join('\n');
     }catch(e){ return 'Date '+dayKey(); }
   }
@@ -18800,11 +18802,20 @@ body.app-b-active #saumyaLife, body.app-c-active #saumyaLife { display:none !imp
 .iw-tdatein{flex:1;min-width:0;}
 .iw-tnumin{width:60px;text-align:center;}
 .iw-tadd{background:linear-gradient(180deg,#f5c542,#e0930b);color:#2a1303;font-weight:800;font-size:14px;border:none;border-radius:9px;padding:8px 15px;cursor:pointer;flex-shrink:0;}
+.iw-tnote{flex:1 1 auto;min-width:0;font-size:12px;color:rgba(248,217,141,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.iw-tform2{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px;}
+.iw-tform2 .iw-tf{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.iw-tform2 label{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(248,217,141,.55);font-weight:600;}
+.iw-tform2 .iw-tin{width:100%;box-sizing:border-box;height:42px;}
+.iw-tfrow{grid-column:1/-1;display:flex;gap:9px;align-items:flex-end;}
+.iw-tfn{flex:0 0 72px;}
+.iw-tfd{flex:1 1 auto;}
+.iw-tfrow .iw-tadd{flex:0 0 auto;height:42px;padding:0 18px;}
 .iw-tadd:active{transform:scale(.94);}
 .iw-thist{margin-top:9px;text-align:left;}
 .iw-trow{display:flex;align-items:center;gap:10px;padding:7px 2px;border-top:1px solid rgba(251,191,36,0.13);font-size:14px;}
 .iw-tdate{color:rgba(255,237,200,0.9);min-width:56px;}
-.iw-tn{color:#fde68a;font-weight:800;flex:1;}
+.iw-tn{color:#fde68a;font-weight:800;flex:none;}
 .iw-tx{color:rgba(255,150,140,0.72);font-size:12px;cursor:pointer;}
 .iw-tx:active{opacity:.55;}
 .iw-tempty{font-size:12.5px;color:rgba(255,237,200,0.6);padding:6px 2px;}
