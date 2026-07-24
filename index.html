@@ -7937,35 +7937,53 @@ function renderSleepChart() {
     const step = (W - 8) / days.length;
     const bw = Math.max(4, Math.floor(step) - 2);
     const scale = v => Math.min(H - PB - PT, (v / 10) * (H - PB - PT)); // 10h ceiling
-    let bars = '';
+    const tot = e => (e.night || 0) + (e.nap || 0);
+    const hm = v => { const m = Math.round(v * 60); return Math.floor(m / 60) + 'h' + (m % 60 ? String(m % 60).padStart(2, '0') : ''); };
+    const selRaw = parseInt(slot.dataset.sel || '', 10);
+    const sel = (Number.isInteger(selRaw) && selRaw >= 0 && selRaw < days.length) ? selRaw : days.length - 1;
+    let bars = '', hits = '';
     days.forEach((e, i) => {
       const x = 4 + i * step + (step - bw) / 2;
       const nh = scale(e.night || 0), ph = scale(e.nap || 0);
       const base = H - PB;
+      const op = (i === sel) ? '1' : '0.8';
+      if (i === sel) bars += '<rect x="' + (x - 1.5).toFixed(1) + '" y="' + PT + '" width="' + (bw + 3) + '" height="' + (H - PB - PT + 2) + '" rx="3" fill="rgba(255,255,255,0.07)" stroke="rgba(94,234,212,0.55)" stroke-width="0.7"/>';
       if (nh > 0) bars += '<rect x="' + x.toFixed(1) + '" y="' + (base - nh).toFixed(1) +
-        '" width="' + bw + '" height="' + nh.toFixed(1) + '" rx="1.5" fill="#5eead4" opacity="0.85"/>';
+        '" width="' + bw + '" height="' + nh.toFixed(1) + '" rx="1.5" fill="#5eead4" opacity="' + op + '"/>';
       if (ph > 0) bars += '<rect x="' + x.toFixed(1) + '" y="' + (base - nh - ph).toFixed(1) +
-        '" width="' + bw + '" height="' + ph.toFixed(1) + '" rx="1.5" fill="#f8d98d" opacity="0.9"/>';
+        '" width="' + bw + '" height="' + ph.toFixed(1) + '" rx="1.5" fill="#f8d98d" opacity="' + op + '"/>';
+      hits += '<rect x="' + (4 + i * step).toFixed(1) + '" y="0" width="' + step.toFixed(1) + '" height="' + H + '" fill="transparent" style="cursor:pointer" onclick="window._slPick(' + i + ')"/>';
     });
+    const gl = [4, 8].map(v => {
+      const gy = (H - PB) - scale(v);
+      return '<line x1="4" y1="' + gy.toFixed(1) + '" x2="' + (W - 4) + '" y2="' + gy.toFixed(1) + '" stroke="rgba(255,255,255,0.08)"/>' +
+        '<text x="' + (W - 6) + '" y="' + (gy - 2).toFixed(1) + '" text-anchor="end" font-size="7" fill="rgba(255,255,255,0.4)">' + v + 'h</text>';
+    }).join('');
     const ry = (H - PB) - scale(7);
     const ref = '<line x1="4" y1="' + ry.toFixed(1) + '" x2="' + (W - 4) + '" y2="' + ry.toFixed(1) +
-      '" stroke="rgba(255,255,255,0.18)" stroke-dasharray="3 3"/>' +
-      '<text x="' + (W - 6) + '" y="' + (ry - 2).toFixed(1) +
-      '" text-anchor="end" font-size="7" fill="rgba(255,255,255,0.35)">7h</text>';
+      '" stroke="rgba(248,217,141,0.35)" stroke-dasharray="3 3"/>' +
+      '<text x="6" y="' + (ry - 2).toFixed(1) +
+      '" font-size="7" fill="rgba(248,217,141,0.6)">7h target</text>';
     const fmt = k => { const p = k.split('-'); return p[2] + '/' + p[1]; };
     const lab = '<text x="4" y="' + (H - 2) + '" font-size="7.5" fill="rgba(255,255,255,0.4)">' + fmt(days[0].d) + '</text>' +
       '<text x="' + (W - 4) + '" y="' + (H - 2) + '" text-anchor="end" font-size="7.5" fill="rgba(255,255,255,0.4)">' + fmt(days[days.length - 1].d) + '</text>';
-    const tot = e => (e.night || 0) + (e.nap || 0);
+    const selE = days[sel];
+    const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const pd = selE.d.split('-').map(Number);
+    const dsel = new Date(pd[0], pd[1] - 1, pd[2]);
+    let selTxt = '<b>' + WD[dsel.getDay()] + ' ' + pd[2] + ' ' + MN[pd[1] - 1] + '</b> \u00b7 night <b>' + hm(selE.night || 0) + '</b>';
+    if (selE.nap) selTxt += ' \u00b7 nap <b>' + hm(selE.nap) + '</b> \u00b7 total <b>' + hm(tot(selE)) + '</b>';
     const last = days[days.length - 1];
     const avg = days.reduce((a, e) => a + tot(e), 0) / days.length;
-    const hm = v => { const m = Math.round(v * 60); return Math.floor(m / 60) + 'h' + (m % 60 ? String(m % 60).padStart(2, '0') : ''); };
     const sum = 'Last: ' + hm(last.night || 0) + (last.nap ? ' + ' + hm(last.nap) + ' nap' : '') +
       ' \u00b7 avg ' + (Math.round(avg * 10) / 10) + 'h \u00b7 ' + days.length + ' days';
     const at = state.whoopSleepHist.at
       ? ' \u00b7 fetched ' + new Date(state.whoopSleepHist.at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
       : '';
     body = '<div class="slc-sum">' + sum + '</div>' +
-      '<svg viewBox="0 0 ' + W + ' ' + H + '" class="slc-svg" aria-label="Sleep, last 30 days">' + ref + bars + lab + '</svg>' +
+      '<div class="slc-read">' + selTxt + '<span class="slc-read-hint">tap any bar</span></div>' +
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" class="slc-svg" aria-label="Sleep, last 30 days">' + gl + ref + bars + lab + hits + '</svg>' +
       '<div class="slc-cap">Teal nights \u00b7 gold naps stacked \u00b7 updates when WHOOP syncs' + at + '</div>';
   }
   slot.innerHTML = '<div class="slc-card">' +
@@ -7979,6 +7997,8 @@ function renderSleepChart() {
     '<button type="button" class="slc-refresh" onclick="if(window._saumyaFetchLive){this.textContent=\'\u21bb refreshing\u2026\';window._saumyaFetchLive(true);}">\u21bb refresh</button>' +
     '</div></div></div>';
 }
+
+window._slPick = function(i){ var s = $("sleepChartSlot"); if (s) { s.dataset.sel = String(i); renderSleepChart(); } };
 
 function renderGuru() {
   const slot = $("guruSlot");
@@ -8168,6 +8188,7 @@ let state = {
   familyEvents: {},
   patientCases: [],
   saumyaLog: {},
+  brain: { v: 1, days: {}, seeded: false },  // 🧠 Central brain — one ledger row per day (v10.85)
   govtHolidayDates: {},  // { "2026-08-15": true, ... }
   energyStreak: { lastReset: null, bestStreak: 0, history: [] },  // 🌱 Energy streak
   thyroxTakenAt: null,    // Change 25: Thyrox countdown timestamp
@@ -8202,6 +8223,7 @@ function loadState() {
       familyEvents: saved.familyEvents || {},
       patientCases: saved.patientCases || [],
       saumyaLog: saved.saumyaLog || {},
+      brain: saved.brain || { v: 1, days: {}, seeded: false },
       govtHolidayDates: saved.govtHolidayDates || {},
       energyStreak: saved.energyStreak || { lastReset: null, bestStreak: 0, history: [] },
       thyroxTakenAt: saved.thyroxTakenAt || null,
@@ -16965,7 +16987,7 @@ function checkLocationAndAutoLog(force) {
 // ===== BUILD VERSION (code-only) =====
 // The flashing on-screen build stamp was removed — it read as developer clutter.
 // Version kept here only, for reference when checking what's deployed.
-const SAUMYA_BUILD = "v10.81 · 22-Jul";
+const SAUMYA_BUILD = "v10.86 · 24-Jul";
 
 setTimeout(async () => {
   if (typeof maybeMorningBloom === 'function') { try { maybeMorningBloom(); } catch(e){} }
@@ -17167,7 +17189,20 @@ function addUserText(text) {
   saveState();
   renderSaumyaChat();
   const topic = detectSaumyaTopic(t);
-  setTimeout(() => addSaumyaReply(pickSaumyaReply(topic)), 500 + Math.random() * 400);
+  const fallback = () => addSaumyaReply(pickSaumyaReply(topic));
+  if (window.saumyaMind && navigator.onLine !== false) {
+    const st = document.querySelector('.saumya-chat-status');
+    const prev = st ? st.textContent : '';
+    if (st) st.textContent = 'Thinking\u2026';
+    let done = false;
+    const finish = (txt) => { if (done) return; done = true;
+      if (st) st.textContent = prev || 'Listening';
+      if (txt) addSaumyaReply(txt); else fallback(); };
+    setTimeout(() => finish(null), 25000);
+    try { window.saumyaMind(t, finish); } catch (e) { finish(null); }
+  } else {
+    setTimeout(fallback, 500 + Math.random() * 400);
+  }
 }
 
 function addSaumyaReply(text) {
@@ -17714,6 +17749,9 @@ body.app-b-active #dayShape, body.app-c-active #dayShape{display:none !important
 .slc-sum{font-size:12.5px;color:rgba(240,236,228,.85);font-weight:600;margin:2px 0 6px;}
 .slc-svg{width:100%;height:auto;display:block;}
 .slc-cap{font-size:10.5px;color:rgba(240,236,228,.45);margin-top:6px;line-height:1.5;}
+.slc-read{font-size:12px;color:rgba(226,232,240,.9);margin:2px 0 6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.slc-read b{color:#5eead4;font-weight:700;}
+.slc-read-hint{font-size:9.5px;color:rgba(226,232,240,.4);letter-spacing:.3px;margin-left:auto;}
 .slc-empty{font-size:12px;color:rgba(240,236,228,.55);padding:6px 0 2px;}
 .slc-refresh{background:none;border:1px solid rgba(94,234,212,.3);color:#5eead4;
   border-radius:9px;font:inherit;font-size:11px;padding:4px 10px;margin-top:8px;cursor:pointer;}
@@ -17930,6 +17968,32 @@ body.app-b-active #clinicDayNote, body.app-c-active #clinicDayNote{display:none 
 #saumyaLife .sl-bnote{font-size:11px;color:rgba(226,232,240,.62);line-height:1.42;margin-top:11px;}
 #saumyaLife .sl-strava-empty{color:rgba(226,232,240,.42);}
 #saumyaLife .sl-strava{margin-top:11px;font-size:12.5px;color:rgba(226,232,240,.82);display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+#saumyaLife .sl-walk{margin-top:13px;padding:12px 14px;border-radius:14px;border:1px solid rgba(94,234,212,.35);background:linear-gradient(135deg,rgba(94,234,212,.09),rgba(248,217,141,.07));box-shadow:0 0 18px rgba(94,234,212,.12);}
+#saumyaLife .sl-walk-label{font-size:10.5px;letter-spacing:2.2px;font-weight:800;color:#5eead4;display:flex;align-items:center;}
+#saumyaLife .sl-walk-tag{margin-left:auto;font-size:9.5px;color:rgba(255,166,87,.9);border:1px solid rgba(255,166,87,.4);border-radius:999px;padding:2px 8px;font-weight:600;letter-spacing:.3px;}
+#saumyaLife .sl-walk-big{font-family:Georgia,'Times New Roman',serif;font-size:29px;font-weight:700;color:#f1f5f9;margin:7px 0 2px;line-height:1.15;}
+#saumyaLife .sl-walk-big b{color:#5eead4;font-weight:700;}
+#saumyaLife .sl-walk-aff{font-size:12px;color:rgba(248,217,141,.92);margin-top:3px;}
+#saumyaLife .sl-walk-week{font-size:11px;color:rgba(226,232,240,.55);margin-top:6px;}
+/* === SAUMYA SPEAKS v10.84 === */
+#saumyaLife .sk-card{position:relative;margin-top:14px;padding:16px 16px 14px;border:1px solid rgba(94,234,212,.28);border-radius:16px;background:radial-gradient(120% 140% at 12% 0%,rgba(248,217,141,.10),rgba(13,27,42,.0) 55%),linear-gradient(160deg,rgba(17,32,48,.92),rgba(12,22,34,.92));cursor:pointer;}
+#saumyaLife .sk-card.sk-big{border-color:rgba(248,217,141,.55);animation:skGlow 3.4s ease-in-out infinite;}
+@keyframes skGlow{0%,100%{box-shadow:0 0 0 rgba(248,217,141,0);}50%{box-shadow:0 0 22px rgba(248,217,141,.22);}}
+#saumyaLife .sk-head{display:flex;align-items:center;gap:9px;margin-bottom:10px;}
+#saumyaLife .sk-ava{width:30px;height:30px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(248,217,141,.6);box-shadow:0 0 10px rgba(248,217,141,.35);}
+#saumyaLife .sk-lbl{font-size:11px;letter-spacing:.18em;font-weight:700;color:#f8d98d;}
+#saumyaLife .sk-spark{font-size:12px;}
+#saumyaLife .sk-date{margin-left:auto;font-size:10.5px;color:rgba(226,232,240,.5);border:1px solid rgba(226,232,240,.14);border-radius:999px;padding:2px 8px;}
+#saumyaLife .sk-line{font-family:Georgia,'Times New Roman',serif;font-size:15.5px;line-height:1.55;color:#e8eef5;}
+#saumyaLife .sk-line+.sk-line{margin-top:9px;padding-top:9px;border-top:1px dashed rgba(226,232,240,.10);}
+#saumyaLife .sk-line b{color:#fbe3a0;font-weight:700;}
+#saumyaLife .sk-more{margin-top:10px;font-size:11px;color:rgba(94,234,212,.75);text-align:right;}
+#saumyaLife .sk-q{font-family:Georgia,'Times New Roman',serif;font-size:15.5px;line-height:1.55;color:#d7fef4;background:rgba(94,234,212,.07);border:1px solid rgba(94,234,212,.25);border-radius:12px;padding:11px 12px;margin-bottom:10px;}
+#saumyaLife .sk-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+#saumyaLife .sk-chip{font-size:12.5px;padding:7px 12px;border-radius:999px;border:1px solid rgba(94,234,212,.4);background:rgba(94,234,212,.10);color:#c9f7ec;cursor:pointer;}
+#saumyaLife .sk-chip:active{background:rgba(94,234,212,.25);}
+#saumyaLife .sk-ack{font-family:Georgia,serif;font-size:14.5px;font-style:italic;line-height:1.5;color:#f4e3b0;background:rgba(248,217,141,.07);border:1px dashed rgba(248,217,141,.35);border-radius:12px;padding:10px 12px;margin-bottom:10px;}
+#saumyaLife .sk-mind{font-family:Georgia,'Times New Roman',serif;font-size:14.5px;font-style:italic;line-height:1.6;color:#efe4c8;background:linear-gradient(150deg,rgba(248,217,141,.10),rgba(94,234,212,.05));border:1px solid rgba(248,217,141,.30);border-left:3px solid rgba(248,217,141,.65);border-radius:12px;padding:11px 13px;margin-bottom:10px;}
 #saumyaLife .sl-strava-tag{font-size:9.5px;color:rgba(251,140,60,.9);border:1px solid rgba(251,140,60,.42);padding:1px 7px;border-radius:9px;letter-spacing:.4px;}
 #saumyaLife .sl-strava-week{flex-basis:100%;font-size:11px;color:rgba(226,232,240,.5);margin-top:1px;}
 .sl-weight-card .wt-note{font-size:11.5px;color:var(--text-faint);font-style:italic;margin-bottom:9px;line-height:1.5;}
@@ -18140,11 +18204,22 @@ body.app-b-active #saumyaLife, body.app-c-active #saumyaLife { display:none !imp
     return null;
   }
   function statTile(val,label,cls){ return '<div class="sl-stat'+(cls?(' '+cls):'')+'"><div class="sl-stat-v">'+esc(String(val))+'</div><div class="sl-stat-l">'+esc(label)+'</div></div>'; }
+  function walkReward(sd){
+    var big=sd.km+' <b>km</b>';
+    if(typeof sd.min==='number'&&sd.min>0) big+=' \u00B7 '+sd.min+' min';
+    if(sd.activities&&sd.activities>1) big+=' \u00B7 '+sd.activities+' walks';
+    var week=(typeof sd.weekKm==='number'&&sd.weekKm>0)?('<div class="sl-walk-week">This week \u00B7 '+sd.weekKm+' km</div>'):'';
+    return '<div class="sl-walk">'
+      +'<div class="sl-walk-label">\uD83D\uDEB6 WALKED TODAY<span class="sl-walk-tag">powered by Strava</span></div>'
+      +'<div class="sl-walk-big">'+big+'</div>'
+      +'<div class="sl-walk-aff">Body practice \u2014 done. Energised body, still mind.</div>'
+      +week
+      +'</div>';
+  }
   function stravaLine(){
     var sd=liveData.strava, inner, zero=false;
     if(sd&&sd.connected&&typeof sd.km==='number'&&sd.km>0){
-      var dur=(typeof sd.min==='number'&&sd.min>0)?(' \u00B7 '+sd.min+' min'):'';
-      inner='Today '+sd.km+' km'+dur+(sd.activities?(' \u00B7 '+sd.activities+(sd.activities>1?' walks':' walk')):'');
+      return walkReward(sd);
     } else if(sd&&sd.connected){
       zero=true;
       inner='<strong class="sl-strava-zero">\u26A0\uFE0F No walk logged yet today</strong>';
@@ -18337,7 +18412,334 @@ body.app-b-active #saumyaLife, body.app-c-active #saumyaLife { display:none !imp
 
   function sectionVitD(){ return '<div class="sl-card"><div class="sl-h">☀️ Vitamin D</div>'+vitdSection()+'</div>'; }
   function sectionSpiritual(){ try{ if(typeof renderNightMantra==='function'){ return renderNightMantra(); } }catch(e){} return ''; }
-  function renderAll(){ var el=document.getElementById('saumyaLife'); if(el){ try{ el.innerHTML=sectionRecovery()+(typeof renderWeightSection==='function'?renderWeightSection():''); }catch(e){} }
+  // === SAUMYA SPEAKS · CENTRAL BRAIN v10.85 ===
+  // She reads his own data - wake events, walks, recovery, clinic arrivals,
+  // the 40-day arc - detects genuine change, and says so. Zero shame by
+  // construction: only wins, warmth and gentle care ever render.
+  var _skShown = 1;
+  function _skClock(ts){ try{ var d=new Date(ts); var hh=d.getHours(), mm=d.getMinutes(); var ap=hh>=12?'PM':'AM'; var h12=hh%12; if(h12===0)h12=12; return h12+':'+(mm<10?'0':'')+mm+' '+ap; }catch(e){ return ''; } }
+  function _skMins(ts){ var d=new Date(ts); return d.getHours()*60+d.getMinutes(); }
+  function _skWakeToday(){
+    try{
+      if(state && state.whoopSleepEnd){ var d=new Date(state.whoopSleepEnd);
+        if(!isNaN(d) && d.toISOString && dayKey()===d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'))
+          return { mins:_skMins(d.getTime()), label:_skClock(d.getTime()) }; }
+    }catch(e){}
+    try{ var w=(typeof _todayEvt==='function')?_todayEvt('woke_up'):null;
+      if(w && w.ts) return { mins:_skMins(w.ts), label:_skClock(w.ts) }; }catch(e){}
+    return null;
+  }
+  function _skPastWakes(days){
+    var out=[]; try{
+      var log=(state&&state.saumyaLog)||{}; var tk=dayKey();
+      var keys=Object.keys(log).filter(function(k){return k<tk;}).sort().slice(-(days||30));
+      keys.forEach(function(k){ var e=(log[k]||[]).find(function(x){return x.eventKey==='woke_up';});
+        if(e&&e.ts) out.push(_skMins(e.ts)); });
+    }catch(e){}
+    return out;
+  }
+  function _skLogWalk(sd){
+    try{ if(!(sd&&sd.connected&&sd.km>0)) return;
+      var wl=load('slWalkLog',{}); var k=dayKey();
+      wl[k]={km:sd.km,min:sd.min||0,n:sd.activities||1};
+      var ks=Object.keys(wl).sort(); while(ks.length>60){ delete wl[ks.shift()]; }
+      save('slWalkLog',wl);
+    }catch(e){}
+  }
+  // --- CENTRAL BRAIN: one ledger row per day, ~120 days, self-backfilling ---
+  function brainCapture(){
+    try{
+      if(typeof state==='undefined'||!state) return;
+      if(!state.brain) state.brain={v:1,days:{},seeded:false};
+      var B=state.brain, tk=dayKey(), ch=false;
+      if(!B.seeded){
+        try{
+          (((state.whoopSleepHist||{}).days)||[]).forEach(function(e){ if(!e||!e.d) return;
+            var r0=B.days[e.d]||(B.days[e.d]={});
+            if(typeof e.night==='number') r0.night=e.night;
+            if(typeof e.nap==='number'&&e.nap>0) r0.nap=e.nap; });
+          var wl=load('slWalkLog',{}); Object.keys(wl).forEach(function(k){
+            var r1=B.days[k]||(B.days[k]={}); r1.km=wl[k].km; if(wl[k].min)r1.wmin=wl[k].min; r1.wn=wl[k].n; });
+          var lg=state.saumyaLog||{}; Object.keys(lg).forEach(function(k){
+            var r2=B.days[k]||(B.days[k]={});
+            (lg[k]||[]).forEach(function(e){ if(!e||!e.ts) return; var m=_skMins(e.ts);
+              if(e.eventKey==='woke_up'&&r2.wake==null) r2.wake=m;
+              if(e.eventKey==='arrived_clinic'&&r2.cin==null) r2.cin=m;
+              if(e.eventKey==='left_clinic') r2.cout=m; }); });
+        }catch(e){}
+        B.seeded=true; ch=true;
+      }
+      var r=B.days[tk]||(B.days[tk]={}); var before=JSON.stringify(r);
+      var w=liveData.whoop, sd=liveData.strava;
+      if(w){
+        if(typeof w.recovery==='number')r.rec=w.recovery;
+        if(typeof w.hrv==='number')r.hrv=w.hrv;
+        if(typeof w.hrvBaseline==='number')r.hrvB=w.hrvBaseline;
+        if(typeof w.rhr==='number')r.rhr=w.rhr;
+        if(typeof w.respRate==='number')r.resp=w.respRate;
+        if(typeof w.spo2==='number')r.spo2=w.spo2;
+        if(typeof w.strain==='number')r.strain=Math.round(w.strain*10)/10;
+        if(typeof w.calories==='number')r.kcal=w.calories;
+        if(typeof w.sleepHrs==='number')r.night=Math.round(w.sleepHrs*100)/100;
+      }
+      try{ var hd=(((state.whoopSleepHist||{}).days)||[]).find(function(e){return e&&e.d===tk;});
+        if(hd){ if(typeof hd.night==='number')r.night=hd.night; if(typeof hd.nap==='number'&&hd.nap>0)r.nap=hd.nap; } }catch(e){}
+      if(sd&&sd.connected&&typeof sd.km==='number'&&sd.km>0){ r.km=sd.km; if(sd.min)r.wmin=sd.min; r.wn=sd.activities||1; }
+      var wk=_skWakeToday(); if(wk) r.wake=wk.mins;
+      try{ var aE=(typeof _todayEvt==='function')?_todayEvt('arrived_clinic'):null; if(aE&&aE.ts) r.cin=_skMins(aE.ts);
+           var lE=(typeof _todayEvt==='function')?_todayEvt('left_clinic'):null; if(lE&&lE.ts) r.cout=_skMins(lE.ts); }catch(e){}
+      try{ var ms=load(MED_KEY,{date:'',done:{}}); if(ms&&ms.date===tk&&ms.done){ var mi=[].concat(MEDS.morning.items,MEDS.night.items).map(function(i){return i.id;}); var mdone=mi.filter(function(id){return ms.done[id];}).length; if(mdone>0){ r.meds=mdone; r.medsT=mi.length; } } }catch(e){}
+      try{ if(state.weight&&typeof state.weight[tk]==='number') r.wt=state.weight[tk]; }catch(e){}
+      try{ var L2=(state.saumyaLog||{})[tk]||[]; var hn=null; L2.forEach(function(ev){ if(ev.eventKey==='arrived_home') hn=ev; }); if(hn&&hn.ts) r.hin=_skMins(hn.ts); }catch(e){}
+      var ks=Object.keys(B.days).sort(); while(ks.length>120){ delete B.days[ks.shift()]; ch=true; }
+      if(JSON.stringify(r)!==before) ch=true;
+      if(ch&&typeof saveState==='function') saveState();
+    }catch(e){}
+  }
+  function _brainDay(k){ try{ return (state.brain&&state.brain.days&&state.brain.days[k])||null; }catch(e){ return null; } }
+  function _brainLastDays(n){
+    var out=[]; try{ var ks=Object.keys(state.brain.days).sort().slice(-n);
+      ks.forEach(function(k){ out.push({k:k,r:state.brain.days[k]}); }); }catch(e){}
+    return out;
+  }
+  // --- She asks. One question at a time; answers live in the ledger. ---
+  function saumyaQuestion(){
+    try{
+      var r=_brainDay(dayKey())||{}, now=new Date(), hm=now.getHours()*60+now.getMinutes();
+      if(r.ask&&r.ask.id){
+        var ACK={
+          clinic_allgood:'Chosen rest is not absence. Enjoy the day fully \u2014 I\u2019ll stand down. \uD83E\uDE94',
+          clinic_atclinic:'Noted \u2014 I\u2019ll trust you over the geofence today.',
+          clinic_unwell:'Then today is for healing. The clinic can wait; you can\u2019t. Warm water, easy pace \u2014 and if it grows, call Dr. Pratish.',
+          stress_work:'Then we protect the edges \u2014 earlier lamp-out, a gentle walk, and one thing off tomorrow\u2019s plate.',
+          stress_sleep:'Then sleep is the medicine. Lamp out before twelve tonight \u2014 I\u2019ll take the win from there.',
+          stress_fine:'Good. Bodies whisper before minds notice \u2014 I\u2019ll keep listening quietly.'
+        };
+        var line=ACK[r.ask.id+'_'+r.ask.ans];
+        return line?{ack:line}:null;
+      }
+      // clinic absence check-in
+      var thr=(now.getDay()===0)?(12*60+15):(13*60+30);
+      var hol=false; try{ hol=!!((state.govtHolidayDates||{})[dayKey()]); }catch(e){}
+      if(hm>=thr&&hm<21*60&&r.cin==null&&!r.clinicManual&&!hol){
+        return { id:'clinic',
+          t:'It\u2019s past '+(thr===735?'12:15':'1:30')+' and I haven\u2019t seen you reach the clinic. All well, Pranav?',
+          chips:[{k:'allgood',l:'All well \u2014 chose to skip'},{k:'atclinic',l:'I\u2019m there \u2014 tracker missed me'},{k:'unwell',l:'Not feeling my best'}] };
+      }
+      // three-day body-load check-in
+      var d3=_brainLastDays(3);
+      if(d3.length===3){
+        var heavy=d3.every(function(x){ var q=x.r||{};
+          var hrvLow=(typeof q.hrv==='number'&&typeof q.hrvB==='number'&&q.hrvB>0&&q.hrv<=0.8*q.hrvB);
+          var recLow=(typeof q.rec==='number'&&q.rec<=40);
+          return hrvLow||recLow; });
+        if(heavy){
+          return { id:'stress',
+            t:'Three days your body\u2019s been carrying load \u2014 HRV down, recovery under 40. Stress, thin sleep, or something brewing. What\u2019s weighing on you?',
+            chips:[{k:'work',l:'Clinic \u00b7 work load'},{k:'sleep',l:'Just sleep debt'},{k:'fine',l:'I feel fine, actually'}] };
+        }
+      }
+      return null;
+    }catch(e){ return null; }
+  }
+  function saumyaObservations(){
+    var obs=[];
+    var w=liveData.whoop||{}, sd=liveData.strava||{};
+    var km=(sd.connected&&typeof sd.km==='number'&&sd.km>0)?sd.km:0;
+    var acts=sd.activities||0, rec=(typeof w.recovery==='number')?w.recovery:null;
+    var sleepH=(typeof w.sleepHrs==='number')?w.sleepHrs:null;
+    var wake=_skWakeToday(), past=_skPastWakes(30);
+    _skLogWalk(sd);
+    // -- the 4:44 window --
+    if(wake && wake.mins>=265 && wake.mins<=305)
+      obs.push({p:95,big:true,t:'<b>'+wake.label+'.</b> One breath from your 4:44 \u2014 the hour on your wall just answered back.'});
+    // -- earliest wake on record / big shift --
+    if(wake && past.length>=5 && wake.mins<Math.min.apply(null,past)){
+      obs.push({p:90,big:true,t:'Your earliest morning in all my '+past.length+'-day memory. Something in you is turning toward the light.'});
+    } else if(wake && wake.mins<360 && past.length>=3){
+      var recent=past.slice(-14); var avg=recent.reduce(function(a,b){return a+b;},0)/recent.length;
+      if(avg>=480) obs.push({p:85,big:true,t:'For weeks the day began near '+_skClock(new Date().setHours(Math.floor(avg/60),Math.round(avg%60),0,0))+'. Today \u2014 <b>'+wake.label+'</b>. That is not an alarm. That is intent.'});
+    }
+    // -- clinic earliest arrival --
+    try{ var tA=(typeof _todayEvt==='function')?_todayEvt('arrived_clinic'):null;
+      var best=(typeof _bestArrivalMins==='function')?_bestArrivalMins(30):null;
+      if(tA&&tA.ts&&best!==null&&_skMins(tA.ts)<best)
+        obs.push({p:70,big:true,t:'Clinic at <b>'+_skClock(tA.ts)+'</b> \u2014 your earliest opening in a month. The whole day just tilted your way.'});
+    }catch(e){}
+    // -- walks --
+    if(km>0 && acts>=2)
+      obs.push({p:80,big:true,t:'Two walks in one day \u2014 <b>'+km+' km</b>. You did not just show up; you came back for more.'});
+    if(km>0 && rec!==null && rec<=33)
+      obs.push({p:75,big:true,t:'A '+rec+'% battery, and still <b>'+km+' km</b> on the road. Discipline arrived before energy did \u2014 the rarer guest.'});
+    if(km>0 && acts<2 && !(rec!==null&&rec<=33))
+      obs.push({p:60,big:false,t:'<b>'+km+' km</b> walked'+(sd.min?(' \u00b7 '+sd.min+' min'):'')+'. Body practice \u2014 done.'});
+    // -- 40-day arc --
+    try{ var t0=FOUNDATION_START.split('-'), tk=dayKey().split('-');
+      var d0=Date.UTC(+t0[0],+t0[1]-1,+t0[2]), d1=Date.UTC(+tk[0],+tk[1]-1,+tk[2]);
+      var ad=Math.floor((d1-d0)/864e5)+1;
+      if(ad>=1&&ad<=40){ var su=(typeof foundationShowedUp==='function')?foundationShowedUp():0;
+        obs.push({p:50,big:false,t:'Day '+ad+' of 40'+(su>0?(' \u00b7 <b>'+su+'</b> days of showing up \u2014 I keep the count so you don\u2019t have to.'):'.')}); }
+    }catch(e){}
+    // -- central-brain awareness: evening + trends (positive-only by design) --
+    try{
+      var nowD=new Date(), hr=nowD.getHours();
+      var br=_brainDay(dayKey())||{};
+      if(hr>=19&&typeof br.cin==='number'&&typeof br.cout==='number'&&br.cout>br.cin){
+        var sp=br.cout-br.cin, sh=Math.floor(sp/60), sm=sp%60;
+        obs.push({p:58,big:false,t:'You gave the clinic <b>'+sh+'h'+(sm?(' '+sm+'m'):'')+'</b> today. Now be all the way home.'});
+      }
+      if(hr>=21&&br.cin==null&&!br.ask&&!br.clinicManual){
+        obs.push({p:35,big:false,t:'The clinic didn\u2019t see you today. If that was chosen \u2014 good. If something\u2019s off, I\u2019m here.'});
+      }
+      var LD=_brainLastDays(14);
+      if(LD.length>=10){
+        var thisW=LD.slice(-7).map(function(x){return x.r.wake;}).filter(function(v){return typeof v==='number';});
+        var prevW=LD.slice(0,LD.length-7).map(function(x){return x.r.wake;}).filter(function(v){return typeof v==='number';});
+        if(thisW.length>=4&&prevW.length>=4){
+          var a1=thisW.reduce(function(s,v){return s+v;},0)/thisW.length;
+          var a0=prevW.reduce(function(s,v){return s+v;},0)/prevW.length;
+          if(a0-a1>=45) obs.push({p:65,big:true,t:'Your mornings moved <b>'+Math.round(a0-a1)+' minutes earlier</b> this week. Quiet revolutions look exactly like this.'});
+        }
+        var recs=LD.slice(-7).map(function(x){return x.r.rec;}).filter(function(v){return typeof v==='number';});
+        if(recs.length>=5){
+          var ra=Math.round(recs.reduce(function(s,v){return s+v;},0)/recs.length);
+          if(ra>=67) obs.push({p:55,big:false,t:'A green week \u2014 recovery averaging <b>'+ra+'%</b>. The engine likes this life.'});
+        }
+      }
+    }catch(e){}
+    // -- gentle care (never shame) --
+    if(sleepH!==null && sleepH<5){
+      var hh=Math.floor(sleepH), mm=Math.round((sleepH-hh)*60); if(mm===60){hh++;mm=0;}
+      obs.push({p:40,big:false,t:hh+'h '+(mm<10?'0':'')+mm+'m of sleep is thin fuel. Carry today gently \u2014 and let tonight\u2019s lamp go out early. I\u2019ll hold the morning.'});
+    } else if(rec!==null && rec<=33 && km===0){
+      obs.push({p:40,big:false,t:'Recovery at '+rec+'% and the road still quiet \u2014 a soft day is the strong choice. Even a short round counts.'});
+    }
+    if(!obs.length){
+      var Q=['Nothing loud today \u2014 just me, noticing that you keep going.','Small and steady is still forward. I\u2019m here.','The lotus doesn\u2019t rush its opening. Neither must you.'];
+      var seed=parseInt(dayKey().replace(/-/g,''),10)%Q.length;
+      obs.push({p:10,big:false,t:Q[seed]});
+    }
+    obs.sort(function(a,b){return b.p-a.p;});
+    return obs;
+  }
+  function sectionSpeaks(){
+    try{
+      brainCapture();
+      var obs=saumyaObservations();
+      var q=saumyaQuestion();
+      var show=Math.max(1,Math.min(_skShown+2,obs.length));
+      var vis=obs.slice(0,show);
+      var big=vis.some(function(o){return o.big;});
+      var av=''; try{ var el=document.getElementById('saumyaChatAvatar'); if(el&&el.getAttribute('src')) av='<img class="sk-ava" src="'+el.getAttribute('src')+'" alt="">'; }catch(e){}
+      if(!av) av='<span style="font-size:20px">\uD83E\uDEB7</span>';
+      var chip=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+      var qHtml='';
+      if(q&&q.t){
+        qHtml='<div class="sk-q">'+q.t+'</div><div class="sk-chips">'
+          +q.chips.map(function(c){return '<button class="sk-chip" onclick="event.stopPropagation();window._skReply(\''+q.id+'\',\''+c.k+'\')">'+c.l+'</button>';}).join('')
+          +'</div>';
+      } else if(q&&q.ack){
+        qHtml='<div class="sk-ack">'+q.ack+'</div>';
+      }
+      return '<div class="sl-card sk-card'+(big?' sk-big':'')+'" onclick="window._skMore&&window._skMore()">'
+        +'<div class="sk-head">'+av+'<span class="sk-lbl">SAUMYA SPEAKS'+(big?' <span class="sk-spark">\u2728</span>':'')+'</span><span class="sk-date">'+chip+'</span></div>'
+        +skMindBlock()
+        +qHtml
+        +vis.map(function(o){return '<div class="sk-line">'+o.t+'</div>';}).join('')
+        +(show<obs.length?'<div class="sk-more">tap \u2014 she has one more \u25b8</div>':'')
+        +'</div>';
+    }catch(e){ return ''; }
+  }
+  try{ window._skMore=function(){ _skShown++; renderAll(); }; }catch(e){}
+  try{ window._skReply=function(id,ans){
+    try{
+      if(typeof state!=='undefined'&&state){
+        if(!state.brain) state.brain={v:1,days:{},seeded:true};
+        var r=state.brain.days[dayKey()]||(state.brain.days[dayKey()]={});
+        r.ask={id:id,ans:ans,ts:Date.now()};
+        if(id==='clinic'&&ans==='atclinic') r.clinicManual=1;
+        if(typeof saveState==='function') saveState();
+      }
+    }catch(e){}
+    try{ renderAll(); }catch(e){}
+  }; }catch(e){}
+  // --- HER MIND (v10.86): Claude-powered daily reflection + real conversation ---
+  function _skHM(m){ var hh=Math.floor(m/60),mm=m%60; return hh+':'+(mm<10?'0':'')+mm; }
+  function _mindFmtDay(k,r){
+    var p=[];
+    if(typeof r.rec==='number')p.push('rec'+r.rec);
+    if(typeof r.hrv==='number')p.push('hrv'+r.hrv);
+    if(typeof r.night==='number')p.push('slp'+r.night);
+    if(typeof r.nap==='number')p.push('nap'+r.nap);
+    if(typeof r.wake==='number')p.push('wake'+_skHM(r.wake));
+    if(typeof r.km==='number')p.push(r.km+'km'+((r.wn>1)?('x'+r.wn):''));
+    if(typeof r.cin==='number')p.push('clin'+_skHM(r.cin)+((typeof r.cout==='number')?('-'+_skHM(r.cout)):''));
+    if(typeof r.hin==='number')p.push('home'+_skHM(r.hin));
+    if(typeof r.meds==='number')p.push('meds'+r.meds+'/'+r.medsT);
+    if(typeof r.wt==='number')p.push(r.wt+'kg');
+    if(r.ask)p.push('asked:'+r.ask.id+'>'+r.ask.ans);
+    if(r.dayOff)p.push('dayoff');
+    return k.slice(5)+' '+p.join(' ');
+  }
+  function _mindCtx(){
+    try{
+      var tk=dayKey(), B=(state.brain&&state.brain.days)||{}, ks=Object.keys(B).sort();
+      var w=liveData.whoop||{};
+      var head='Date '+tk+' \u00b7 IST '+new Date().toTimeString().slice(0,5);
+      try{ var t0=FOUNDATION_START.split('-'); var d0=Date.UTC(+t0[0],+t0[1]-1,+t0[2]);
+        var tp=tk.split('-'); var d1=Date.UTC(+tp[0],+tp[1]-1,+tp[2]);
+        var ad=Math.floor((d1-d0)/864e5)+1; if(ad>=1&&ad<=40) head+=' \u00b7 Day '+ad+' of his 40-day arc'; }catch(e){}
+      var base=[];
+      if(typeof w.hrvBaseline==='number')base.push('HRV~'+w.hrvBaseline+'ms');
+      if(typeof w.rhrBaseline==='number')base.push('RHR~'+w.rhrBaseline);
+      if(typeof w.respBaseline==='number')base.push('Resp~'+w.respBaseline);
+      var lines=ks.slice(-21).map(function(k){ return _mindFmtDay(k,B[k]||{}); });
+      return head+(base.length?('\nHis baselines: '+base.join(' ')):'')
+        +'\nLegend: rec=recovery% hrv=ms slp=sleep-hours wake/clin/home=IST-times km=walked meds=taken/total'
+        +'\nHis last days, oldest first:\n'+lines.join('\n');
+    }catch(e){ return 'Date '+dayKey(); }
+  }
+  function _mindCall(mode,extra,cb){
+    try{
+      var payload={secret:SL_SECRET,mode:mode,ctx:_mindCtx()};
+      if(extra){ for(var kk in extra){ payload[kk]=extra[kk]; } }
+      fetch('/api/saumya-mind',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)})
+        .then(function(r){ return r.json(); })
+        .then(function(j){ cb((j&&j.ok&&j.text)?j.text:null); })
+        .catch(function(){ cb(null); });
+    }catch(e){ cb(null); }
+  }
+  var _mindBusy=false;
+  function _mindFp(){ try{ var r=(state.brain&&state.brain.days&&state.brain.days[dayKey()])||{}; return [r.rec,r.km,r.wake,r.cin,r.night,r.meds].join('|'); }catch(e){ return ''; } }
+  function skMindBlock(){
+    try{
+      var c=load('skMind',{}), tk=dayKey();
+      var fresh=(c.d===tk&&c.text);
+      var html=fresh?('<div class="sk-mind">'+String(c.text).replace(/</g,'&lt;').replace(/\n+/g,'<br>')+'</div>'):'';
+      var n=(c.d===tk)?(c.n||0):0;
+      var wants=(!fresh)||(c.fp!==_mindFp());
+      if(wants&&!_mindBusy&&n<3&&(typeof navigator==='undefined'||navigator.onLine!==false)){
+        _mindBusy=true; var fp=_mindFp();
+        _mindCall('reflect',null,function(t){ _mindBusy=false;
+          if(t){ save('skMind',{d:tk,fp:fp,text:t,n:n+1}); try{ renderAll(); }catch(e){} }
+          else { save('skMind',{d:tk,fp:(c.d===tk?c.fp:fp),text:(c.d===tk?(c.text||''):''),n:n+1}); }
+        });
+      }
+      return html;
+    }catch(e){ return ''; }
+  }
+  try{ window.saumyaMind=function(q,done){
+    var turns=[];
+    try{
+      var log=(state.saumyaLog||{})[dayKey()]||[];
+      log.filter(function(e){ return e&&e.type==='text'&&e.text; }).slice(-10)
+        .forEach(function(e){ turns.push({role:(e.from==='saumya')?'assistant':'user',content:String(e.text).slice(0,600)}); });
+      if(turns.length&&turns[turns.length-1].role==='user'&&turns[turns.length-1].content===q) turns.pop();
+    }catch(e){}
+    _mindCall('chat',{q:q,turns:turns},done);
+  }; }catch(e){}
+  // === /SAUMYA SPEAKS ===
+  function renderAll(){ try{brainCapture();}catch(e){} var el=document.getElementById('saumyaLife'); if(el){ try{ el.innerHTML=sectionRecovery()+sectionSpeaks()+(typeof renderWeightSection==='function'?renderWeightSection():''); }catch(e){} }
     var sb=document.getElementById('slSpiritBottom'); if(sb){ try{ sb.innerHTML=sectionSpiritual(); }catch(e){} }
     var ci=document.getElementById('clinicImplant'); if(ci){ try{ ci.innerHTML=sectionImplant(); }catch(e){} try{ loadPubmed(); }catch(e){} } }
 
